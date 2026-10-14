@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PokerStars Style Roulette</title>
+    <title>Royal Casino 3D - Ruleta Premium</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Carga de Three.js para renderizado 3D fotorrealista -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body class="pokerstars-theme">
 
-    <!-- BARRA SUPERIOR ELEGANTE -->
+    <!-- BARRA SUPERIOR VIP -->
     <header class="top-bar">
         <div class="brand">
             <span class="star-icon">★</span>
-            <span class="brand-title">ROYAL CASINO</span>
+            <span class="brand-title">ROYAL CASINO 3D</span>
         </div>
         <div class="user-stats">
             <div class="stat-box">
@@ -28,16 +30,14 @@
         </div>
     </header>
 
-    <!-- MESA PRINCIPAL (LAYOUT DERECHA / IZQUIERDA) -->
+    <!-- MESA PRINCIPAL EN 3D + PAÑO -->
     <main class="casino-table">
         
-        <!-- SECTOR IZQUIERDO: RUEDA Y FICHAS -->
+        <!-- SECTOR IZQUIERDO: RUEDA 3D HIPER-REALISTA -->
         <section class="wheel-section">
-            <div class="wheel-container">
-                <canvas id="wheel-canvas" width="440" height="440"></canvas>
-            </div>
+            <div id="canvas-3d-container" class="wheel-container-3d"></div>
 
-            <!-- FICHAS COLORIDAS ABAJO A LA IZQUIERDA -->
+            <!-- FICHAS 3D APILADAS -->
             <div class="chips-rack">
                 <div class="chip-stack c-purple" onclick="selectChip(10, this)"><span>10</span></div>
                 <div class="chip-stack c-green active" onclick="selectChip(50, this)"><span>50</span></div>
@@ -47,10 +47,8 @@
             </div>
         </section>
 
-        <!-- SECTOR DERECHO: PAÑO DE APUESTAS & RACETRACK -->
+        <!-- SECTOR DERECHO: PAÑO DE APUESTAS -->
         <section class="board-section">
-            
-            <!-- MENSAJE DE APUESTA -->
             <div id="live-payout-message" class="status-banner">
                 HAGA SUS APUESTAS
             </div>
@@ -65,7 +63,7 @@
                 </div>
             </div>
 
-            <!-- CONTROLES RAPIDOS RED/BLACK -->
+            <!-- BOTONES RAPIDOS COLOR -->
             <div class="quick-color-bets">
                 <button class="btn-quick red" onclick="placeBet('COLOR', 'rojo')">RED</button>
                 <span class="split-divider">SPLITS</span>
@@ -74,13 +72,8 @@
 
             <!-- TABLERO PRINCIPAL DE NUMEROS -->
             <div class="main-table-grid">
-                <!-- CERO (IZQUIERDA) -->
                 <div class="tile zero-tile" onclick="placeBet('PLENO', 0)">0</div>
-
-                <!-- GRILLA 1-36 -->
                 <div class="numbers-wrapper" id="numbers-grid"></div>
-
-                <!-- COLUMNAS (DERECHA) -->
                 <div class="column-bets">
                     <div class="col-tile" onclick="placeBet('COLUMNA', 3)">2 to 1</div>
                     <div class="col-tile" onclick="placeBet('COLUMNA', 2)">2 to 1</div>
@@ -102,13 +95,12 @@
                 <div class="ext-tile" onclick="placeBet('PASO', 2)">19 - 36</div>
             </div>
 
-            <!-- BOTONES DE ACCION -->
+            <!-- CONTROLES -->
             <div class="action-bar">
                 <button onclick="clearBets()" class="btn-action clear">BORRAR APUESTAS</button>
-                <button onclick="spinWheel()" class="btn-action spin">GIRAR 🎲</button>
+                <button onclick="spinWheel3D()" class="btn-action spin">GIRAR 🎲</button>
             </div>
         </section>
-
     </main>
 
     <script src="script.js"></script>
