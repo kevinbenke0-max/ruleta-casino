@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Casino - Ruleta Americana</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 10px;">
+
+    <!-- HEADER / SALDO EN TIEMPO REAL -->
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto 15px auto; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 10px; border: 1px solid #d4af37;">
+        <div>
+            <span style="color: #aaa; font-size: 0.9rem;">Jugador: </span>
+            <span id="player-display" style="color: #ffd700; font-weight: bold; font-size: 1.1rem;">-</span>
+        </div>
+        <div>
+            <span style="color: #aaa; font-size: 0.9rem;">Fichas: </span>
+            <span id="user-chips" style="color: #ffd700; font-weight: bold; font-size: 1.2rem;">0</span> 🪙
+        </div>
+        <button onclick="logout()" class="btn-small" style="background: #c0392b; padding: 5px 10px;">Salir</button>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL DEL JUEGO -->
+    <div class="games-container" style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+        
+        <!-- RUEDA DE LA RULETA -->
+        <div style="position: relative; margin-bottom: 20px;">
+            <canvas id="wheel-canvas" width="300" height="300"></canvas>
+            <button onclick="spinWheel()" class="btn-primary" style="margin-top: 10px; width: 100%;">GIRAR RUEDA 🎲</button>
+        </div>
+
+        <!-- MENSAJE DE ESTADO / PREMIOS -->
+        <div id="live-payout-message" style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; min-height: 24px;">
+            Selecciona tus fichas y haz tus apuestas
+        </div>
+
+        <!-- SELECTOR DE FICHAS -->
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div class="chip active" onclick="selectChip(10)">10</div>
+            <div class="chip" onclick="selectChip(50)">50</div>
+            <div class="chip" onclick="selectChip(100)">100</div>
+            <div class="chip" onclick="selectChip(500)">500</div>
+            <button onclick="clearBets()" class="btn-small" style="background: #555;">Limpiar Apuestas</button>
+        </div>
+
+        <!-- TABLERO DE APUESTAS AMERICANA (0 y 00) -->
+        <div class="roulette-board" style="display: flex; gap: 5px; width: 100%; justify-content: center;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="tile green" onclick="placeBet('PLENO', 0)" style="height: 100%; display: flex; align-items: center; justify-content: center; padding: 10px;">0</div>
+                <div class="tile green" onclick="placeBet('PLENO', '00')" style="height: 100%; display: flex; align-items: center; justify-content: center; padding: 10px;">00</div>
+            </div>
+            <div id="numbers-grid" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; flex-grow: 1;">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- APUESTAS EXTERIORES -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 15px;">
+            <button class="btn-small" onclick="placeBet('DOCENA', 1)">1ª Docena (1-12)</button>
+            <button class="btn-small" onclick="placeBet('DOCENA', 2)">2ª Docena (13-24)</button>
+            <button class="btn-small" onclick="placeBet('DOCENA', 3)">3ª Docena (25-36)</button>
+            <button class="btn-small" onclick="placeBet('COLOR', 'rojo')" style="background: #b22222;">ROJO</button>
+            <button class="btn-small" onclick="placeBet('COLOR', 'negro')" style="background: #111;">NEGRO</button>
+            <button class="btn-small" onclick="placeBet('PARIDAD', 'par')">PAR</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
