@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Casino - Ruleta Americana Realista</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- 1. PANTALLA DE LOGIN -->
+    <div id="screen-login" class="screen active">
+        <div class="login-card">
+            <div class="logo">
+                <h1>ROYAL CASINO</h1>
+                <p>VIP GAMBLING EXPERIENCE</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary">ENTRAR AL CASINO</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HEADER SUPERIOR (Datos del Usuario y Fichas) -->
+    <header id="main-header" class="hidden">
+        <div class="user-info">
+            <span class="avatar">👤</span>
+            <span id="header-username" class="user-name">Usuario</span>
+        </div>
+        <div class="chips-counter">
+            <span class="chip-icon">🪙</span>
+            <span id="user-chips">1,000</span> <small>FICHAS</small>
+        </div>
+        <button id="btn-logout" class="btn-small">Salir</button>
+    </header>
+
+    <!-- 2. PANTALLA LISTA DE JUEGOS -->
+    <div id="screen-games" class="screen hidden">
+        <div class="games-container">
+            <h2>Lobby de Juegos</h2>
+            <div class="games-grid">
+                <!-- Tarjeta Ruleta Americana -->
+                <div class="game-card">
+                    <div class="game-badge">HOT</div>
+                    <div class="game-image roulette-bg"></div>
+                    <div class="game-details">
+                        <h3>Ruleta Americana (0 & 00)</h3>
+                        <p>38 Números • Doble Cero • Sonidos Reales de Casino</p>
+                        <div class="card-actions">
+                            <button onclick="openRulesModal()" class="btn-secondary">Reglas y Premios</button>
+                            <button onclick="enterGame('ruleta')" class="btn-primary">JUGAR AHORA</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos juegos -->
+                <div class="game-card disabled">
+                    <div class="game-image blackjack-bg"></div>
+                    <div class="game-details">
+                        <h3>Blackjack VIP</h3>
+                        <p>Próximamente...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PANTALLA MESA DE RULETA AMERICANA -->
+    <div id="screen-roulette" class="screen hidden">
+        <div class="game-header-bar">
+            <button onclick="exitToLobby()" class="btn-small">⬅ Volver al Lobby</button>
+            <div id="live-payout-message" class="status-msg">¡Coloca tus apuestas en el tapete!</div>
+        </div>
+
+        <div class="roulette-layout">
+            <!-- Ruleta Giratoria Animada -->
+            <div class="wheel-section">
+                <canvas id="wheel-canvas" width="380" height="380"></canvas>
+                <button id="btn-spin" onclick="spinWheel()" class="btn-spin">¡GIRAR RULETA!</button>
+            </div>
+
+            <!-- Tapete de Apuestas -->
+            <div class="table-section">
+                <div class="betting-board">
+                    <div class="board-top">
+                        <div class="zero-column">
+                            <div class="tile zero" onclick="placeBet('PLENO', 0)">0</div>
+                            <div class="tile zero" onclick="placeBet('PLENO', '00')">00</div>
+                        </div>
+                        <div class="numbers-grid" id="numbers-grid"></div>
+                    </div>
+                    <div class="outside-bets">
+                        <div onclick="placeBet('DOCENA', 1)">1ª Docena (1-12)</div>
+                        <div onclick="placeBet('DOCENA', 2)">2ª Docena (13-24)</div>
+                        <div onclick="placeBet('DOCENA', 3)">3ª Docena (25-36)</div>
+                        <div onclick="placeBet('COLOR', 'rojo')" class="red-bet">ROJO</div>
+                        <div onclick="placeBet('COLOR', 'negro')" class="black-bet">NEGRO</div>
+                        <div onclick="placeBet('PARIDAD', 'par')">PAR</div>
+                        <div onclick="placeBet('PARIDAD', 'impar')">IMPAR</div>
+                    </div>
+                </div>
+
+                <!-- Selector de Valor de Ficha -->
+                <div class="chip-selector">
+                    <span>Selecciona Ficha:</span>
+                    <button class="chip c10 active" onclick="selectChip(10)">10</button>
+                    <button class="chip c50" onclick="selectChip(50)">50</button>
+                    <button class="chip c100" onclick="selectChip(100)">100</button>
+                    <button class="chip c500" onclick="selectChip(500)">500</button>
+                    <button onclick="clearBets()" class="btn-clear">Limpiar Apuestas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE REGLAS Y PAGOS -->
+    <div id="modal-rules" class="modal hidden">
+        <div class="modal-content">
+            <h3>📜 Reglas y Tabla de Premios (Ruleta Americana)</h3>
+            <ul>
+                <li><strong>Pleno (Número Exacto 0, 00 o 1-36):</strong> Paga <strong>35 a 1</strong></li>
+                <li><strong>Docenas (1ª, 2ª o 3ª):</strong> Paga <strong>2 a 1</strong></li>
+                <li><strong>Rojo / Negro:</strong> Paga <strong>1 a 1</strong></li>
+                <li><strong>Par / Impar:</strong> Paga <strong>1 a 1</strong></li>
+                <li><strong>Los Ceros (0 y 00):</strong> Son verdes. Si sale cualquiera de los dos, las apuestas externas (Rojo, Negro, Par, Impar, Docenas) pierden.</li>
+            </ul>
+            <button onclick="closeRulesModal()" class="btn-primary">Entendido</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
