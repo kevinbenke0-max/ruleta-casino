@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Casino - Tragamonedas 777</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para la máquina tragamonedas */
+        .slot-machine-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #0d2116;
+            border: 3px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 420px;
+            margin: 15px auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 15px rgba(212,175,55,0.3);
+        }
+
+        .slot-header {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        /* Ventana de los 3 rodillos */
+        .reels-frame {
+            display: flex;
+            gap: 10px;
+            background: #000;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #ffd700;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .reel {
+            width: 90px;
+            height: 100px;
+            background: linear-gradient(180deg, #111 0%, #222 50%, #111 100%);
+            border: 2px solid #d4af37;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            transition: transform 0.1s ease-in-out;
+        }
+
+        /* Paytable / Tabla de premios rápida */
+        .paytable-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #1b4d2e;
+            border-radius: 6px;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #8fa896;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            text-align: center;
+        }
+        .paytable-item { background: rgba(255,255,255,0.05); padding: 4px; border-radius: 4px; }
+        .paytable-item span { color: #ffd700; font-weight: 800; }
+
+        .slot-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .bet-selector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #03180c;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #1b4d2e;
+        }
+
+        .bet-btn {
+            background: #1b4d2e;
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-spin-slot {
+            background: linear-gradient(180deg, #ffd700 0%, #d4af37 100%);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(212,175,55,0.4);
+            flex: 1;
+        }
+        .btn-spin-slot:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body class="classic-casino-theme">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="top-bar">
+        <div class="brand">
+            <span class="star-icon">★</span>
+            <span class="brand-title">ROYAL CASINO</span>
+        </div>
+        <div class="user-stats">
+            <div class="stat-box">
+                <span class="stat-label">JUGADOR</span>
+                <span id="player-display" class="stat-val">-</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">SALDO</span>
+                <span class="stat-val">$<span id="user-chips">0</span></span>
+            </div>
+            <button onclick="window.location.href='ruleta.html'" class="btn-exit" style="background:#27ae60;">RULETA</button>
+            <button onclick="logout()" class="btn-exit">SALIR</button>
+        </div>
+    </header>
+
+    <main class="casino-table-container">
+        <div class="slot-machine-container">
+            <div class="slot-header">🎰 TRAGAMONEDAS 777</div>
+
+            <!-- RODILLOS DE SÍMBOLOS -->
+            <div class="reels-frame">
+                <div id="reel-1" class="reel">🍒</div>
+                <div id="reel-2" class="reel">🍋</div>
+                <div id="reel-3" class="reel">🔔</div>
+            </div>
+
+            <!-- MENSAJE DE ESTADO -->
+            <div id="live-payout-message" class="status-banner" style="margin-top: 15px;">
+                ¡ELIJE TU APUESTA Y GIRA!
+            </div>
+
+            <!-- CONTROLES Y APUESTA -->
+            <div class="slot-controls">
+                <div class="bet-selector">
+                    <button onclick="changeSlotBet(-10)" class="bet-btn">-</button>
+                    <span style="font-size: 0.85rem; font-weight:800;">$<span id="slot-bet-amount">50</span></span>
+                    <button onclick="changeSlotBet(10)" class="bet-btn">+</button>
+                </div>
+                <button id="btn-spin" onclick="spinSlot()" class="btn-spin-slot">GIRAR 🎲</button>
+            </div>
+
+            <!-- TABLA DE PREMIOS -->
+            <div class="paytable-box">
+                <div class="paytable-item">3x 7️⃣ ➔ <span>50x</span></div>
+                <div class="paytable-item">3x 💎 ➔ <span>25x</span></div>
+                <div class="paytable-item">3x 🔔 ➔ <span>10x</span></div>
+                <div class="paytable-item">3x 🍉 / 🍋 ➔ <span>5x</span></div>
+                <div class="paytable-item">3x 🍒 ➔ <span>3x</span></div>
+                <div class="paytable-item">2x CUALQUIERA ➔ <span>1.5x</span></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="tragamonedas.js"></script>
+</body>
+</html>
