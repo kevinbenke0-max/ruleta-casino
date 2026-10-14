@@ -177,6 +177,7 @@ function clearBets() {
 let currentAngle = 0;
 let isSpinning = false;
 
+// RENDERIZADO HD DE LA RUEDA (Alineado perfectamente arriba)
 function drawWheelHD(angleOffset, ballPos) {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
@@ -205,7 +206,7 @@ function drawWheelHD(angleOffset, ballPos) {
     ctx.rotate(angleOffset);
 
     for (let i = 0; i < numSlices; i++) {
-        const angle = i * sliceAngle;
+        const angle = (i * sliceAngle) - (Math.PI / 2) - (sliceAngle / 2);
         const num = rouletteNumbers[i];
 
         ctx.beginPath();
@@ -272,7 +273,7 @@ function spinWheel() {
     }
 
     isSpinning = true;
-    playSound('spin'); // <--- REPRODUCE EL SONIDO REAL DE LA BOLA GIRANDO
+    playSound('spin');
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "🎲 GIRANDO RUEDA Y BOLA...";
 
@@ -305,18 +306,15 @@ function spinWheel() {
     animate();
 }
 
+// EVALUACIÓN EXACTA Y SINCRONIZADA DEL GANADOR
 function evaluateResultsHD() {
     const numSlices = rouletteNumbers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
     
-    // Obtenemos el ángulo exacto en el que quedó la rueda al frenar
-    let angleNormalized = currentAngle % (2 * Math.PI);
-    if (angleNormalized < 0) angleNormalized += (2 * Math.PI);
+    let normalizedAngle = (currentAngle % (2 * Math.PI));
+    if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
     
-    // Como la rueda gira y el indicador está arriba (-PI/2 o 270 grados), 
-    // calculamos exactamente qué porción de la rueda quedó apuntando hacia arriba.
-    let pointerAngle = (2 * Math.PI - angleNormalized) % (2 * Math.PI);
-    let winningIndex = Math.floor((pointerAngle + sliceAngle / 2) / sliceAngle) % numSlices;
+    let winningIndex = Math.round((2 * Math.PI - normalizedAngle) / sliceAngle) % numSlices;
     let winningNumber = rouletteNumbers[winningIndex];
 
     let isRed = redNumbers.includes(winningNumber);
@@ -368,7 +366,6 @@ function evaluateResultsHD() {
     }
     updateChipsDisplay();
 
-    // Guardar en el historial de últimos números
     let historyList = document.getElementById('history-list');
     if (historyList) {
         let badge = document.createElement('div');
