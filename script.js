@@ -176,6 +176,7 @@ function clearBets() {
 
 let currentAngle = 0;
 let isSpinning = false;
+let preSelectedWinningIndex = 0;
 
 // RENDERIZADO HD DE LA RUEDA (Alineado perfectamente arriba)
 function drawWheelHD(angleOffset, ballPos) {
@@ -277,20 +278,29 @@ function spinWheel() {
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "🎲 GIRANDO RUEDA Y BOLA...";
 
-    let wheelSpeed = 0.35;
+    const numSlices = rouletteNumbers.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+
+    preSelectedWinningIndex = Math.floor(Math.random() * numSlices);
+
+    let targetAngle = -(preSelectedWinningIndex * sliceAngle);
+    let totalSpins = (Math.PI * 2) * 5; 
+    let finalDestinationAngle = targetAngle - totalSpins;
+
     let ballAngle = Math.random() * Math.PI * 2;
-    let ballSpeed = 0.48;
+    let ballSpeed = 0.55;
     let ballRadius = 132;
 
     function animate() {
-        if (wheelSpeed > 0.0012) {
-            wheelSpeed *= 0.988;
-            ballSpeed *= 0.985;
-            currentAngle += wheelSpeed;
+        let distanceToGo = finalDestinationAngle - currentAngle;
+        
+        if (Math.abs(distanceToGo) > 0.001) {
+            currentAngle += distanceToGo * 0.06;
             ballAngle -= ballSpeed;
+            ballSpeed *= 0.985;
 
             if (ballRadius > 78) {
-                ballRadius -= 0.28;
+                ballRadius -= 0.25;
             }
 
             let bx = Math.cos(ballAngle) * ballRadius;
@@ -299,6 +309,8 @@ function spinWheel() {
             drawWheelHD(currentAngle, { x: bx, y: by });
             requestAnimationFrame(animate);
         } else {
+            currentAngle = finalDestinationAngle;
+            drawWheelHD(currentAngle, null);
             isSpinning = false;
             evaluateResultsHD();
         }
@@ -306,17 +318,8 @@ function spinWheel() {
     animate();
 }
 
-// EVALUACIÓN EXACTA Y SINCRONIZADA DEL GANADOR
 function evaluateResultsHD() {
-    const numSlices = rouletteNumbers.length;
-    const sliceAngle = (2 * Math.PI) / numSlices;
-    
-    let normalizedAngle = (currentAngle % (2 * Math.PI));
-    if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
-    
-    let winningIndex = Math.round((2 * Math.PI - normalizedAngle) / sliceAngle) % numSlices;
-    let winningNumber = rouletteNumbers[winningIndex];
-
+    let winningNumber = rouletteNumbers[preSelectedWinningIndex];
     let isRed = redNumbers.includes(winningNumber);
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
 
