@@ -146,24 +146,6 @@ function placeBet(tipo, eleccion, cellElement = null) {
     if (msg) msg.innerText = `APUESTAS TOTALES: $${totalCurrentBet} (${activeBets.length} jugadas)`;
 }
 
-function placeSpecialBet(sector) {
-    let numbersToBet = [];
-    if (sector === 'ZERO') numbersToBet = [0, 3, 12, 15, 26, 32, 35];
-    else if (sector === 'VOISINS') numbersToBet = [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25];
-    else if (sector === 'ORPHELINS') numbersToBet = [1, 20, 14, 31, 9, 17, 34, 6];
-    else if (sector === 'TIERS') numbersToBet = [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33];
-
-    let totalCost = numbersToBet.length * currentBetAmount;
-    if (currentChips < totalCost) {
-        alert("❌ Fichas insuficientes para cubrir este sector.");
-        return;
-    }
-    numbersToBet.forEach(num => {
-        let cellEl = document.querySelector(`.num-cell[data-num="${num}"]`);
-        placeBet('PLENO', num, cellEl);
-    });
-}
-
 function clearBets() {
     let refunded = activeBets.reduce((acc, b) => acc + b.monto, 0);
     currentChips += refunded;
@@ -178,7 +160,7 @@ let currentAngle = 0;
 let isSpinning = false;
 let preSelectedWinningIndex = 0;
 
-// RENDERIZADO HD DE LA RUEDA (Alineado perfectamente arriba)
+// RENDERIZADO HD DE LA RUEDA
 function drawWheelHD(angleOffset, ballPos) {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
@@ -273,6 +255,10 @@ function spinWheel() {
         return;
     }
 
+    // Ocultar visor previo al iniciar nuevo giro
+    const previewBox = document.getElementById('zoom-preview-box');
+    if (previewBox) previewBox.classList.add('hidden');
+
     isSpinning = true;
     playSound('spin');
     const msg = document.getElementById('live-payout-message');
@@ -289,7 +275,7 @@ function spinWheel() {
 
     let ballAngle = Math.random() * Math.PI * 2;
     let ballSpeed = 0.55;
-    let ballRadius = 132;
+    let ballRadius = 120;
 
     function animate() {
         let distanceToGo = finalDestinationAngle - currentAngle;
@@ -299,7 +285,7 @@ function spinWheel() {
             ballAngle -= ballSpeed;
             ballSpeed *= 0.985;
 
-            if (ballRadius > 78) {
+            if (ballRadius > 70) {
                 ballRadius -= 0.25;
             }
 
@@ -316,6 +302,30 @@ function spinWheel() {
         }
     }
     animate();
+}
+
+// MOSTRAR VISOR / ZOOM MINIATURA EN PRIMER PLANO
+function showWinningZoom(winningNum) {
+    const previewBox = document.getElementById('zoom-preview-box');
+    const numText = document.getElementById('zoom-num-text');
+    const zoomCanvas = document.getElementById('zoom-canvas');
+    if (!previewBox || !zoomCanvas) return;
+
+    previewBox.classList.remove('hidden');
+    numText.innerText = winningNum;
+
+    const ctx = zoomCanvas.getContext('2d');
+    ctx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+
+    let isRed = redNumbers.includes(winningNum);
+    ctx.fillStyle = (winningNum === 0) ? '#008744' : (isRed ? '#d32f2f' : '#111111');
+    ctx.fillRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px Montserrat';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(winningNum, zoomCanvas.width / 2, zoomCanvas.height / 2);
 }
 
 function evaluateResultsHD() {
@@ -368,6 +378,9 @@ function evaluateResultsHD() {
         playSound('win');
     }
     updateChipsDisplay();
+
+    // Mostrar el visor flotante con el número ganador
+    showWinningZoom(winningNumber);
 
     let historyList = document.getElementById('history-list');
     if (historyList) {
