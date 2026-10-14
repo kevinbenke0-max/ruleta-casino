@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Royal Casino - Ruleta Realista HD</title>
+    <title>Royal Casino - Ruleta Pro</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="pokerstars-theme vertical-layout">
+<body class="classic-casino-theme">
 
     <!-- BARRA SUPERIOR -->
     <header class="top-bar">
@@ -28,81 +28,75 @@
         </div>
     </header>
 
-    <!-- CONTENEDOR PRINCIPAL VERTICAL -->
-    <main class="casino-table-vertical">
+    <!-- CONTENEDOR PRINCIPAL MESA DE CASINO -->
+    <main class="casino-table-container">
         
-        <!-- SECCIÓN SUPERIOR: RUEDA FOTORREALISTA HD -->
-        <section class="wheel-section-v">
+        <!-- SECCIÓN SUPERIOR: RUEDA Y VISOR MINIATURA -->
+        <section class="wheel-section">
             <div class="wheel-stage">
-                <canvas id="wheel-canvas" width="360" height="360"></canvas>
-            </div>
-        </section>
-
-        <!-- BANNER DE ESTADO -->
-        <div id="live-payout-message" class="status-banner">
-            HAGA SUS APUESTAS MÚLTIPLES EN EL PAÑO
-        </div>
-
-        <!-- SELECTOR DE FICHAS -->
-        <section class="chips-rack">
-            <div class="chip-stack c-purple" onclick="selectChip(10, this)"><span>10</span></div>
-            <div class="chip-stack c-green active" onclick="selectChip(50, this)"><span>50</span></div>
-            <div class="chip-stack c-red" onclick="selectChip(100, this)"><span>100</span></div>
-            <div class="chip-stack c-blue" onclick="selectChip(500, this)"><span>500</span></div>
-            <div class="chip-stack c-black" onclick="selectChip(1000, this)"><span>1K</span></div>
-        </section>
-
-        <!-- SECCIÓN INFERIOR: PAÑO DE APUESTAS -->
-        <section class="board-section-v">
-            
-            <!-- RACETRACK (VECINOS) -->
-            <div class="racetrack-container">
-                <div class="racetrack">
-                    <div class="rt-sector" onclick="placeSpecialBet('ZERO')">Zero</div>
-                    <div class="rt-sector" onclick="placeSpecialBet('VOISINS')">Voisins</div>
-                    <div class="rt-sector" onclick="placeSpecialBet('ORPHELINS')">Orphelins</div>
-                    <div class="rt-sector" onclick="placeSpecialBet('TIERS')">Tiers</div>
+                <canvas id="wheel-canvas" width="280" height="280"></canvas>
+                
+                <!-- PANTALLITA MINIATURA / VISOR DE ZOOM (Estilo Betfair) -->
+                <div id="zoom-preview-box" class="zoom-preview hidden">
+                    <div class="zoom-header" id="zoom-num-text">14</div>
+                    <canvas id="zoom-canvas" width="60" height="60"></canvas>
                 </div>
             </div>
 
-            <!-- APUESTAS RÁPIDAS COLOR -->
-            <div class="quick-color-bets">
-                <button class="btn-quick red" onclick="placeBet('COLOR', 'rojo')">RED</button>
-                <button class="btn-quick black" onclick="placeBet('COLOR', 'negro')">BLACK</button>
+            <div id="live-payout-message" class="status-banner">
+                HAGA SUS APUESTAS MÚLTIPLES EN EL PAÑO
             </div>
+            
+            <!-- HISTORIAL DE ÚLTIMOS NÚMEROS -->
+            <div class="history-bar">
+                <span class="history-label">HISTORIAL:</span>
+                <div id="history-list" class="history-list"></div>
+            </div>
+        </section>
 
-            <!-- TABLERO PRINCIPAL DE NÚMEROS -->
+        <!-- PAÑO VERDE CLÁSICO DE APUESTAS -->
+        <section class="felt-board">
             <div class="main-table-grid">
-                <div class="tile zero-tile" onclick="placeBet('PLENO', 0)">0</div>
+                <div class="tile zero-tile" onclick="placeBet('PLENO', 0, this)">0</div>
                 <div class="numbers-wrapper" id="numbers-grid"></div>
                 <div class="column-bets">
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 3)">2:1</div>
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 2)">2:1</div>
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 1)">2:1</div>
+                    <div class="col-tile" onclick="placeBet('COLUMNA', 3, this)">2:1</div>
+                    <div class="col-tile" onclick="placeBet('COLUMNA', 2, this)">2:1</div>
+                    <div class="col-tile" onclick="placeBet('COLUMNA', 1, this)">2:1</div>
                 </div>
             </div>
 
-            <!-- DOCENAS Y EXTERIORES -->
-            <div class="outside-bets-grid">
-                <div class="doz-tile" onclick="placeBet('DOCENA', 1)">1st 12</div>
-                <div class="doz-tile" onclick="placeBet('DOCENA', 2)">2nd 12</div>
-                <div class="doz-tile" onclick="placeBet('DOCENA', 3)">3rd 12</div>
-
-                <div class="ext-tile" onclick="placeBet('PASO', 1)">1-18</div>
-                <div class="ext-tile" onclick="placeBet('PARIDAD', 'par')">EVEN</div>
-                <div class="ext-tile" onclick="placeBet('COLOR', 'rojo')"><div class="diamond red"></div></div>
-                <div class="ext-tile" onclick="placeBet('COLOR', 'negro')"><div class="diamond black"></div></div>
-                <div class="ext-tile" onclick="placeBet('PARIDAD', 'impar')">ODD</div>
-                <div class="ext-tile" onclick="placeBet('PASO', 2)">19-36</div>
+            <div class="doz-bets-grid">
+                <div class="doz-tile" onclick="placeBet('DOCENA', 1, this)">1ra 12</div>
+                <div class="doz-tile" onclick="placeBet('DOCENA', 2, this)">2da 12</div>
+                <div class="doz-tile" onclick="placeBet('DOCENA', 3, this)">3ra 12</div>
             </div>
 
-            <!-- BOTONES DE ACCIÓN -->
-            <div class="action-bar">
-                <button onclick="clearBets()" class="btn-action clear">BORRAR APUESTAS</button>
-                <button onclick="spinWheel()" class="btn-action spin">GIRAR RUEDA 🎲</button>
+            <div class="outside-bets-grid">
+                <div class="ext-tile" onclick="placeBet('PASO', 1, this)">1 a 18</div>
+                <div class="ext-tile" onclick="placeBet('PARIDAD', 'par', this)">Par</div>
+                <div class="ext-tile" onclick="placeBet('COLOR', 'rojo', this)"><div class="diamond red"></div></div>
+                <div class="ext-tile" onclick="placeBet('COLOR', 'negro', this)"><div class="diamond black"></div></div>
+                <div class="ext-tile" onclick="placeBet('PARIDAD', 'impar', this)">Impar</div>
+                <div class="ext-tile" onclick="placeBet('PASO', 2, this)">19 a 36</div>
             </div>
         </section>
 
+        <!-- BARRA INFERIOR: FICHAS Y ACCIONES -->
+        <footer class="bottom-action-bar">
+            <div class="chips-rack">
+                <div class="chip-stack c-purple" onclick="selectChip(10, this)"><span>10</span></div>
+                <div class="chip-stack c-green active" onclick="selectChip(50, this)"><span>50</span></div>
+                <div class="chip-stack c-red" onclick="selectChip(100, this)"><span>100</span></div>
+                <div class="chip-stack c-blue" onclick="selectChip(500, this)"><span>500</span></div>
+                <div class="chip-stack c-black" onclick="selectChip(1000, this)"><span>1K</span></div>
+            </div>
+
+            <div class="action-buttons-group">
+                <button onclick="clearBets()" class="btn-action clear">BORRAR</button>
+                <button onclick="spinWheel()" class="btn-action spin">GIRAR 🎲</button>
+            </div>
+        </footer>
     </main>
 
     <script src="script.js"></script>
