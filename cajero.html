@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Cajero - Royal Casino</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 20px;">
+
+    <div class="games-container" style="max-width: 900px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #ffd700; font-family: 'Cinzel', serif;">💰 Panel de Cajero / Administración</h2>
+            <a href="index.html" class="btn-small" style="text-decoration: none; padding: 10px 15px;">⬅ Ir al Casino</a>
+        </div>
+
+        <!-- FORMULARIO CREAR / CARGAR USUARIO -->
+        <div class="login-card" style="width: 100%; max-width: none; text-align: left; margin-bottom: 30px;">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">Crear o Cargar Saldo a Jugador</h3>
+            <form id="cashier-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: flex-end;">
+                <div class="input-group" style="margin: 0;">
+                    <label>Usuario</label>
+                    <input type="text" id="new-user" placeholder="Ej: jugador1" required>
+                </div>
+                <div class="input-group" style="margin: 0;">
+                    <label>Contraseña</label>
+                    <input type="text" id="new-pass" placeholder="Clave de acceso" required>
+                </div>
+                <div class="input-group" style="margin: 0;">
+                    <label>Fichas a sumar/cargar</label>
+                    <input type="number" id="new-chips" placeholder="1000" value="1000" required>
+                </div>
+                <button type="submit" class="btn-primary" style="height: 42px;">Guardar / Cargar</button>
+            </form>
+        </div>
+
+        <!-- LISTA DE USUARIOS ACTIVOS -->
+        <div class="login-card" style="width: 100%; max-width: none; text-align: left;">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">Estado de Cuentas en Tiempo Real</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #d4af37; color: #ffd700;">
+                            <th style="padding: 10px;">Usuario</th>
+                            <th style="padding: 10px;">Contraseña</th>
+                            <th style="padding: 10px;">Fichas Actuales</th>
+                            <th style="padding: 10px;">Acciones Rápidas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="cajero.js"></script>
+</body>
+</html>
