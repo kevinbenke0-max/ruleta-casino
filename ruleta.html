@@ -38,7 +38,7 @@
                 
                 <!-- PANTALLITA MINIATURA / VISOR DE ZOOM (Estilo Betfair) -->
                 <div id="zoom-preview-box" class="zoom-preview hidden">
-                    <div class="zoom-header" id="zoom-num-text">14</div>
+                    <div class="zoom-header" id="zoom-num-text">0</div>
                     <canvas id="zoom-canvas" width="60" height="60"></canvas>
                 </div>
             </div>
@@ -57,48 +57,4 @@
         <!-- PAÑO VERDE CLÁSICO DE APUESTAS -->
         <section class="felt-board">
             <div class="main-table-grid">
-                <div class="tile zero-tile" onclick="placeBet('PLENO', 0, this)">0</div>
-                <div class="numbers-wrapper" id="numbers-grid"></div>
-                <div class="column-bets">
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 3, this)">2:1</div>
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 2, this)">2:1</div>
-                    <div class="col-tile" onclick="placeBet('COLUMNA', 1, this)">2:1</div>
-                </div>
-            </div>
-
-            <div class="doz-bets-grid">
-                <div class="doz-tile" onclick="placeBet('DOCENA', 1, this)">1ra 12</div>
-                <div class="doz-tile" onclick="placeBet('DOCENA', 2, this)">2da 12</div>
-                <div class="doz-tile" onclick="placeBet('DOCENA', 3, this)">3ra 12</div>
-            </div>
-
-            <div class="outside-bets-grid">
-                <div class="ext-tile" onclick="placeBet('PASO', 1, this)">1 a 18</div>
-                <div class="ext-tile" onclick="placeBet('PARIDAD', 'par', this)">Par</div>
-                <div class="ext-tile" onclick="placeBet('COLOR', 'rojo', this)"><div class="diamond red"></div></div>
-                <div class="ext-tile" onclick="placeBet('COLOR', 'negro', this)"><div class="diamond black"></div></div>
-                <div class="ext-tile" onclick="placeBet('PARIDAD', 'impar', this)">Impar</div>
-                <div class="ext-tile" onclick="placeBet('PASO', 2, this)">19 a 36</div>
-            </div>
-        </section>
-
-        <!-- BARRA INFERIOR: FICHAS Y ACCIONES -->
-        <footer class="bottom-action-bar">
-            <div class="chips-rack">
-                <div class="chip-stack c-purple" onclick="selectChip(10, this)"><span>10</span></div>
-                <div class="chip-stack c-green active" onclick="selectChip(50, this)"><span>50</span></div>
-                <div class="chip-stack c-red" onclick="selectChip(100, this)"><span>100</span></div>
-                <div class="chip-stack c-blue" onclick="selectChip(500, this)"><span>500</span></div>
-                <div class="chip-stack c-black" onclick="selectChip(1000, this)"><span>1K</span></div>
-            </div>
-
-            <div class="action-buttons-group">
-                <button onclick="clearBets()" class="btn-action clear">BORRAR</button>
-                <button onclick="spinWheel()" class="btn-action spin">GIRAR 🎲</button>
-            </div>
-        </footer>
-    </main>
-
-    <script src="script.js"></script>
-</body>
-</html>
+                <div class="tile zero-tile" onclick="placeBet('PLENO
