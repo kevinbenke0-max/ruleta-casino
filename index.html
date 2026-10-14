@@ -5,31 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Royal Casino - Login</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div id="screen-login" class="screen active">
-        <div class="login-card">
-            <div class="logo">
-                <h1>ROYAL CASINO</h1>
-                <p>VIP GAMBLING EXPERIENCE</p>
+<body class="pokerstars-theme" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+
+    <div class="login-card" style="background: rgba(17, 21, 28, 0.95); border: 2px solid #d4af37; border-radius: 12px; padding: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);">
+        <div class="logo" style="margin-bottom: 25px;">
+            <h1 style="color: #ffd700; font-size: 1.8rem; font-weight: 800; letter-spacing: 2px;">ROYAL CASINO</h1>
+            <p style="color: #8a9ba8; font-size: 0.75rem;">VIP GAMBLING EXPERIENCE</p>
+        </div>
+
+        <form id="login-form">
+            <div class="input-group" style="text-align: left; margin-bottom: 15px;">
+                <label style="display: block; font-size: 0.85rem; color: #d4af37; margin-bottom: 5px; font-weight: 600;">Usuario</label>
+                <input type="text" id="username" placeholder="Tu usuario asignado" required style="width: 100%; padding: 10px 15px; background: #0b0e11; border: 1px solid #333; border-radius: 6px; color: #fff; outline: none;">
             </div>
-            <form id="login-form">
-                <div class="input-group">
-                    <label for="username">Usuario</label>
-                    <input type="text" id="username" placeholder="Tu usuario asignado" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn-primary">ENTRAR AL CASINO</button>
-            </form>
-            <div style="margin-top: 20px; font-size: 0.8rem;">
-                <a href="cajero.html" style="color: #d4af37; text-decoration: none;">🔐 Acceso Exclusivo Cajero / Admin</a>
+            <div class="input-group" style="text-align: left; margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.85rem; color: #d4af37; margin-bottom: 5px; font-weight: 600;">Contraseña</label>
+                <input type="password" id="password" placeholder="••••••••" required style="width: 100%; padding: 10px 15px; background: #0b0e11; border: 1px solid #333; border-radius: 6px; color: #fff; outline: none;">
             </div>
+            <button type="submit" class="btn-action spin" style="width: 100%; padding: 12px; font-weight: 800; cursor: pointer;">ENTRAR AL CASINO</button>
+        </form>
+
+        <div style="margin-top: 20px; font-size: 0.8rem;">
+            <a href="cajero.html" style="color: #d4af37; text-decoration: none; font-weight: 600;">🔐 Acceso Exclusivo Cajero / Admin</a>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
