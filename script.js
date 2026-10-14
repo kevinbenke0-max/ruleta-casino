@@ -309,8 +309,15 @@ function evaluateResultsHD() {
     const numSlices = rouletteNumbers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
     
-    let normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
-    let winningIndex = Math.floor(normalizedAngle / sliceAngle);
+    // Normalizar el ángulo actual de la rueda para que quede entre 0 y 2*PI
+    let normalizedAngle = (currentAngle % (2 * Math.PI));
+    if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
+    
+    // El indicador fijo está arriba (en el ángulo -PI/2 o 3*PI/2). 
+    // Calculamos qué índice de la lista de números queda exactamente alineado arriba.
+    let effectiveAngle = (2 * Math.PI - normalizedAngle + (Math.PI / 2)) % (2 * Math.PI);
+    let winningIndex = Math.floor(effectiveAngle / sliceAngle) % numSlices;
+    
     let winningNumber = rouletteNumbers[winningIndex];
     let isRed = redNumbers.includes(winningNumber);
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
@@ -335,13 +342,13 @@ function evaluateResultsHD() {
             if (bet.eleccion === 'impar' && winningNumber % 2 !== 0) { won = true; mult = 1; }
         } 
         else if (bet.tipo === 'DOCENA' && winningNumber !== 0) {
-            if (bet.eleccion === 1 && winningNumber <= 12) { won = true; mult = 2; } // Docenas pagan 2 a 1
+            if (bet.eleccion === 1 && winningNumber <= 12) { won = true; mult = 2; }
             if (bet.eleccion === 2 && winningNumber >= 13 && winningNumber <= 24) { won = true; mult = 2; }
             if (bet.eleccion === 3 && winningNumber >= 25) { won = true; mult = 2; }
         } 
         else if (bet.tipo === 'COLUMNA' && winningNumber !== 0) {
             let col = bet.eleccion;
-            if (winningNumber % 3 === col % 3) { won = true; mult = 2; } // Columnas pagan 2 a 1
+            if (winningNumber % 3 === col % 3) { won = true; mult = 2; }
         } 
         else if (bet.tipo === 'PASO' && winningNumber !== 0) {
             if (bet.eleccion === 1 && winningNumber <= 18) { won = true; mult = 1; }
@@ -351,7 +358,7 @@ function evaluateResultsHD() {
         if (won) {
             let winAmount = bet.monto * mult;
             netProfit += winAmount;
-            totalPayout += bet.monto + winAmount; // Devolución de ficha + Ganancia neta
+            totalPayout += bet.monto + winAmount;
         }
     });
 
@@ -360,6 +367,18 @@ function evaluateResultsHD() {
         playSound('win');
     }
     updateChipsDisplay();
+
+    // Guardar en el historial de últimos números
+    let historyList = document.getElementById('history-list');
+    if (historyList) {
+        let badge = document.createElement('div');
+        badge.className = `history-badge ${winningNumber === 0 ? 'green' : (isRed ? 'red' : 'black')}`;
+        badge.innerText = winningNumber;
+        historyList.insertBefore(badge, historyList.firstChild);
+        if (historyList.children.length > 8) {
+            historyList.removeChild(historyList.lastChild);
+        }
+    }
 
     const msg = document.getElementById('live-payout-message');
     if (msg) {
