@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Royal Casino 3D - Vertical</title>
+    <title>Royal Casino - Ruleta Pro</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body class="pokerstars-theme vertical-layout">
 
@@ -32,14 +31,16 @@
     <!-- CONTENEDOR PRINCIPAL VERTICAL -->
     <main class="casino-table-vertical">
         
-        <!-- SECCIÓN SUPERIOR: RUEDA 3D COMPLETA -->
+        <!-- SECCIÓN SUPERIOR: RUEDA HIPER-REALISTA -->
         <section class="wheel-section-v">
-            <div id="canvas-3d-container" class="wheel-container-3d"></div>
+            <div class="wheel-container-hd">
+                <canvas id="wheel-canvas" width="340" height="340"></canvas>
+            </div>
         </section>
 
-        <!-- BANNER DE ESTADO -->
+        <!-- BANNER DE ESTADO Y APUESTAS -->
         <div id="live-payout-message" class="status-banner">
-            HAGA SUS APUESTAS
+            SELECCIONE SUS FICHAS Y APUESTAS MÚLTIPLES
         </div>
 
         <!-- SELECTOR DE FICHAS -->
@@ -54,7 +55,7 @@
         <!-- SECCIÓN INFERIOR: PAÑO DE APUESTAS -->
         <section class="board-section-v">
             
-            <!-- RACETRACK -->
+            <!-- RACETRACK (VECINOS) -->
             <div class="racetrack-container">
                 <div class="racetrack">
                     <div class="rt-sector" onclick="placeSpecialBet('ZERO')">Zero</div>
@@ -64,13 +65,13 @@
                 </div>
             </div>
 
-            <!-- APUESTAS RÁPIDAS -->
+            <!-- APUESTAS RÁPIDAS COLOR -->
             <div class="quick-color-bets">
                 <button class="btn-quick red" onclick="placeBet('COLOR', 'rojo')">RED</button>
                 <button class="btn-quick black" onclick="placeBet('COLOR', 'negro')">BLACK</button>
             </div>
 
-            <!-- TABLERO PRINCIPAL -->
+            <!-- TABLERO PRINCIPAL DE NÚMEROS -->
             <div class="main-table-grid">
                 <div class="tile zero-tile" onclick="placeBet('PLENO', 0)">0</div>
                 <div class="numbers-wrapper" id="numbers-grid"></div>
@@ -97,8 +98,8 @@
 
             <!-- BOTONES DE ACCIÓN -->
             <div class="action-bar">
-                <button onclick="clearBets()" class="btn-action clear">BORRAR</button>
-                <button onclick="spinWheel3D()" class="btn-action spin">GIRAR RUEDA 🎲</button>
+                <button onclick="clearBets()" class="btn-action clear">BORRAR APUESTAS</button>
+                <button onclick="spinWheel()" class="btn-action spin">GIRAR RUEDA 🎲</button>
             </div>
         </section>
 
