@@ -272,6 +272,7 @@ function spinWheel() {
     }
 
     isSpinning = true;
+    playSound('spin'); // <--- REPRODUCE EL SONIDO REAL DE LA BOLA GIRANDO
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "🎲 GIRANDO RUEDA Y BOLA...";
 
