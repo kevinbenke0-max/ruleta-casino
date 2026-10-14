@@ -1,4 +1,3 @@
-// SONIDOS SINTETIZADOS DE ALTA FIDELIDAD
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -16,28 +15,18 @@ function playSound(type) {
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.05);
-    } else if (type === 'spin') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 1.5);
-        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.5);
     } else if (type === 'win') {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
         osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
         osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-        osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.6);
+        osc.stop(audioCtx.currentTime + 0.4);
     }
 }
 
-// GESTIÓN DE BASE DE DATOS LOCAL
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
     if (!users) {
@@ -125,8 +114,9 @@ function initBoard() {
             const isRed = redNumbers.includes(col);
             const cell = document.createElement('div');
             cell.className = `num-cell ${isRed ? 'red' : 'black'}`;
-            cell.innerText = col;
-            cell.onclick = () => placeBet('PLENO', col);
+            cell.dataset.num = col;
+            cell.innerHTML = `<span>${col}</span>`;
+            cell.onclick = () => placeBet('PLENO', col, cell);
             grid.appendChild(cell);
         }
     }
@@ -138,9 +128,9 @@ function selectChip(val, el) {
     if (el) el.classList.add('active');
 }
 
-function placeBet(tipo, eleccion) {
+function placeBet(tipo, eleccion, cellElement = null) {
     if (currentChips < currentBetAmount) {
-        alert("❌ ¡No tienes suficientes fichas!");
+        alert("❌ ¡No tienes suficientes fichas para esta apuesta!");
         return;
     }
     currentChips -= currentBetAmount;
@@ -154,9 +144,20 @@ function placeBet(tipo, eleccion) {
         activeBets.push({ tipo, eleccion, monto: currentBetAmount });
     }
 
+    if (cellElement) {
+        let totalOnCell = activeBets.find(b => b.tipo === tipo && b.eleccion === eleccion).monto;
+        let badge = cellElement.querySelector('.bet-badge');
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'bet-badge';
+            cellElement.appendChild(badge);
+        }
+        badge.innerText = `$${totalOnCell}`;
+    }
+
     let totalCurrentBet = activeBets.reduce((sum, b) => sum + b.monto, 0);
     const msg = document.getElementById('live-payout-message');
-    if (msg) msg.innerText = `APUESTAS ACTIVAS: $${totalCurrentBet} (${activeBets.length} jugadas)`;
+    if (msg) msg.innerText = `APUESTAS TOTALES: $${totalCurrentBet} (${activeBets.length} jugadas)`;
 }
 
 function placeSpecialBet(sector) {
@@ -168,10 +169,13 @@ function placeSpecialBet(sector) {
 
     let totalCost = numbersToBet.length * currentBetAmount;
     if (currentChips < totalCost) {
-        alert("❌ Fichas insuficientes para este sector.");
+        alert("❌ Fichas insuficientes para cubrir este sector.");
         return;
     }
-    numbersToBet.forEach(num => placeBet('PLENO', num));
+    numbersToBet.forEach(num => {
+        let cellEl = document.querySelector(`.num-cell[data-num="${num}"]`);
+        placeBet('PLENO', num, cellEl);
+    });
 }
 
 function clearBets() {
@@ -179,11 +183,11 @@ function clearBets() {
     currentChips += refunded;
     activeBets = [];
     updateChipsDisplay();
+    document.querySelectorAll('.bet-badge').forEach(b => b.remove());
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "APUESTAS LIMPIADAS";
 }
 
-// RENDERIZADO FOTORREALISTA HD Y BOLA DE MARFIL
 let currentAngle = 0;
 let isSpinning = false;
 
@@ -199,21 +203,19 @@ function drawWheelHD(angleOffset, ballPos) {
     ctx.save();
     ctx.translate(radius, radius);
 
-    // BORDE DE MADERA BARNIZADA Y METAL DORADO
-    let woodGrad = ctx.createRadialGradient(0, 0, radius - 28, 0, 0, radius);
-    woodGrad.addColorStop(0, '#260d00');
-    woodGrad.addColorStop(0.6, '#4d1a00');
+    let woodGrad = ctx.createRadialGradient(0, 0, radius - 30, 0, 0, radius);
+    woodGrad.addColorStop(0, '#1c0900');
+    woodGrad.addColorStop(0.5, '#421600');
     woodGrad.addColorStop(1, '#d4af37');
 
     ctx.beginPath();
-    ctx.arc(0, 0, radius - 4, 0, 2 * Math.PI);
+    ctx.arc(0, 0, radius - 2, 0, 2 * Math.PI);
     ctx.fillStyle = woodGrad;
     ctx.fill();
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.strokeStyle = '#ffd700';
     ctx.stroke();
 
-    // ROTACIÓN DE LA RUEDA
     ctx.rotate(angleOffset);
 
     for (let i = 0; i < numSlices; i++) {
@@ -222,51 +224,47 @@ function drawWheelHD(angleOffset, ballPos) {
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius - 42, angle, angle + sliceAngle);
+        ctx.arc(0, 0, radius - 35, angle, angle + sliceAngle);
         ctx.closePath();
 
         if (num === 0) ctx.fillStyle = '#008744';
         else ctx.fillStyle = redNumbers.includes(num) ? '#d92020' : '#111111';
 
         ctx.fill();
-        ctx.strokeStyle = '#c5a059';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        // NÚMEROS HD DEFINIDOS
         ctx.save();
         ctx.rotate(angle + sliceAngle / 2);
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Montserrat';
         ctx.textAlign = 'right';
         ctx.shadowColor = '#000';
-        ctx.shadowBlur = 3;
-        ctx.fillText(num, radius - 55, 4);
+        ctx.shadowBlur = 4;
+        ctx.fillText(num, radius - 45, 4);
         ctx.restore();
     }
 
-    // CENTRO METÁLICO DORADO Y TORRETA
-    let centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 50);
+    let centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 48);
     centerGrad.addColorStop(0, '#fff5c0');
-    centerGrad.addColorStop(0.5, '#d4af37');
+    centerGrad.addColorStop(0.6, '#d4af37');
     centerGrad.addColorStop(1, '#4a3500');
 
     ctx.beginPath();
-    ctx.arc(0, 0, 50, 0, 2 * Math.PI);
+    ctx.arc(0, 0, 48, 0, 2 * Math.PI);
     ctx.fillStyle = centerGrad;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#111';
+    ctx.strokeStyle = '#222';
     ctx.stroke();
 
-    // CRUZ DE LA TORRETA
     ctx.fillStyle = '#ffea75';
-    ctx.fillRect(-38, -5, 76, 10);
-    ctx.fillRect(-5, -38, 10, 76);
+    ctx.fillRect(-35, -4, 70, 8);
+    ctx.fillRect(-4, -35, 8, 70);
 
     ctx.restore();
 
-    // DIBUJAR BOLA DE MARFIL SI ESTÁ ACTIVA
     if (ballPos) {
         ctx.save();
         ctx.translate(radius, radius);
@@ -274,7 +272,7 @@ function drawWheelHD(angleOffset, ballPos) {
         ctx.arc(ballPos.x, ballPos.y, 7, 0, 2 * Math.PI);
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = '#000';
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 8;
         ctx.fill();
         ctx.restore();
     }
@@ -288,24 +286,23 @@ function spinWheel() {
     }
 
     isSpinning = true;
-    playSound('spin');
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "🎲 GIRANDO RUEDA Y BOLA...";
 
     let wheelSpeed = 0.35;
     let ballAngle = Math.random() * Math.PI * 2;
-    let ballSpeed = 0.5;
-    let ballRadius = 130;
+    let ballSpeed = 0.48;
+    let ballRadius = 132;
 
     function animate() {
         if (wheelSpeed > 0.0012) {
-            wheelSpeed *= 0.987;
+            wheelSpeed *= 0.988;
             ballSpeed *= 0.985;
             currentAngle += wheelSpeed;
             ballAngle -= ballSpeed;
 
-            if (ballRadius > 75) {
-                ballRadius -= 0.3; // Física de caída hacia los números
+            if (ballRadius > 78) {
+                ballRadius -= 0.28;
             }
 
             let bx = Math.cos(ballAngle) * ballRadius;
@@ -372,5 +369,6 @@ function evaluateResultsHD() {
         msg.innerText = text;
     }
     activeBets = [];
+    document.querySelectorAll('.bet-badge').forEach(b => b.remove());
     drawWheelHD(currentAngle, null);
 }
