@@ -1,4 +1,3 @@
-// SONIDO SINTETIZADO
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -28,15 +27,9 @@ function playSound(type) {
     }
 }
 
-// GESTIÓN DE BASE DE DATOS LOCAL
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
-    if (!users) {
-        let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
-        localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
-        return defaultUsers;
-    }
-    return JSON.parse(users);
+    return users ? JSON.parse(users) : { "admin": { pass: "1234", chips: 5000 } };
 }
 
 function saveUserChips() {
@@ -51,9 +44,8 @@ function saveUserChips() {
 let currentUser = sessionStorage.getItem('active_user') || null;
 let currentChips = 0;
 let currentBetAmount = 50;
-let activeBets = [];
+let activeBets = []; // Soporta múltiples apuestas simultáneas
 
-// LOGIN LISTENER ROBUSTO
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -67,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('active_user', user);
                 window.location.href = "ruleta.html";
             } else {
-                alert("❌ Usuario o contraseña incorrectos, o no registrado por el cajero.");
+                alert("❌ Usuario o contraseña incorrectos.");
             }
         });
     }
@@ -87,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = "index.html";
         }
         initBoard();
-        init3DWheel();
+        drawWheelHD(0);
     }
 });
 
@@ -128,18 +120,45 @@ function selectChip(val, el) {
     if (el) el.classList.add('active');
 }
 
+// SISTEMA DE APUESTAS MÚLTIPLES
 function placeBet(tipo, eleccion) {
     if (currentChips < currentBetAmount) {
-        alert("❌ Sin fichas suficientes.");
+        alert("❌ ¡No tienes suficientes fichas para esta apuesta!");
         return;
     }
     currentChips -= currentBetAmount;
     updateChipsDisplay();
     playSound('chip');
-    activeBets.push({ tipo, eleccion, monto: currentBetAmount });
-    
+
+    // Acumula o agrega la apuesta
+    let existingBet = activeBets.find(b => b.tipo === tipo && b.eleccion === eleccion);
+    if (existingBet) {
+        existingBet.monto += currentBetAmount;
+    } else {
+        activeBets.push({ tipo, eleccion, monto: currentBetAmount });
+    }
+
+    let totalCurrentBet = activeBets.reduce((sum, b) => sum + b.monto, 0);
     const msg = document.getElementById('live-payout-message');
-    if (msg) msg.innerText = `APUESTA: $${currentBetAmount} EN '${eleccion}'`;
+    if (msg) msg.innerText = `APUESTAS ACTIVAS: $${totalCurrentBet} (${activeBets.length} jugadas)`;
+}
+
+function placeSpecialBet(sector) {
+    let numbersToBet = [];
+    if (sector === 'ZERO') numbersToBet = [0, 3, 12, 15, 26, 32, 35];
+    else if (sector === 'VOISINS') numbersToBet = [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25];
+    else if (sector === 'ORPHELINS') numbersToBet = [1, 20, 14, 31, 9, 17, 34, 6];
+    else if (sector === 'TIERS') numbersToBet = [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33];
+
+    let totalCost = numbersToBet.length * currentBetAmount;
+    if (currentChips < totalCost) {
+        alert("❌ Fichas insuficientes para cubrir este sector.");
+        return;
+    }
+
+    numbersToBet.forEach(num => {
+        placeBet('PLENO', num);
+    });
 }
 
 function clearBets() {
@@ -151,132 +170,141 @@ function clearBets() {
     if (msg) msg.innerText = "APUESTAS LIMPIADAS";
 }
 
-// MOTOR 3D
-let scene, camera, renderer, wheelGroup, ballMesh;
-let isSpinning3D = false;
-let wheelSpeed = 0;
-let ballAngle = 0;
-let ballRadius = 7.5;
-let ballSpeed = 0;
+// RENDERIZADO HD DE LA RUEDA Y BOLA
+let currentAngle = 0;
+let isSpinning = false;
 
-function init3DWheel() {
-    const container = document.getElementById('canvas-3d-container');
-    if (!container) return;
-
-    scene = new THREE.Scene();
-    
-    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.set(0, 16, 16);
-    camera.lookAt(0, 0, 0);
-
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(320, 320);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
-
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    mainLight.position.set(5, 15, 10);
-    scene.add(mainLight);
-
-    wheelGroup = new THREE.Group();
-    scene.add(wheelGroup);
-
-    const woodBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(9, 9.5, 1, 64),
-        new THREE.MeshStandardMaterial({ color: 0x2b1100, roughness: 0.3 })
-    );
-    woodBase.position.y = -0.5;
-    scene.add(woodBase);
-
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.1, metalness: 0.9 });
-    
-    const goldRing = new THREE.Mesh(new THREE.TorusGeometry(8, 0.25, 16, 100), goldMat);
-    goldRing.rotation.x = Math.PI / 2;
-    scene.add(goldRing);
-
-    const innerWheel = new THREE.Mesh(
-        new THREE.CylinderGeometry(7.5, 2, 0.6, 37),
-        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 })
-    );
-    wheelGroup.add(innerWheel);
-
-    const turret = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.8, 2, 32), goldMat);
-    turret.position.y = 0.6;
-    wheelGroup.add(turret);
-
-    const cross1 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 0.5), goldMat);
-    cross1.position.y = 1.5;
-    wheelGroup.add(cross1);
-
-    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 3.8), goldMat);
-    cross2.position.y = 1.5;
-    wheelGroup.add(cross2);
-
-    ballMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.3, 32, 32),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 })
-    );
-    ballMesh.position.set(ballRadius, 0.4, 0);
-    scene.add(ballMesh);
-
-    function animate3D() {
-        requestAnimationFrame(animate3D);
-
-        if (isSpinning3D) {
-            wheelGroup.rotation.y += wheelSpeed;
-            wheelSpeed *= 0.988;
-
-            ballAngle -= ballSpeed;
-            ballSpeed *= 0.985;
-
-            if (ballSpeed < 0.08 && ballRadius > 4) {
-                ballRadius -= 0.03;
-            }
-
-            ballMesh.position.x = Math.cos(ballAngle) * ballRadius;
-            ballMesh.position.z = Math.sin(ballAngle) * ballRadius;
-
-            if (wheelSpeed <= 0.001) {
-                isSpinning3D = false;
-                evaluateResults3D();
-            }
-        } else {
-            wheelGroup.rotation.y += 0.002;
-        }
-
-        renderer.render(scene, camera);
-    }
-
-    animate3D();
-}
-
-function spinWheel3D() {
-    if (isSpinning3D) return;
-    if (activeBets.length === 0) {
-        alert("⚠️ Realice al menos una apuesta.");
-        return;
-    }
-
-    isSpinning3D = true;
-    wheelSpeed = 0.35;
-    ballSpeed = 0.45;
-    ballRadius = 7.5;
-    
-    const msg = document.getElementById('live-payout-message');
-    if (msg) msg.innerText = "🎲 GIRANDO RUEDA 3D...";
-}
-
-function evaluateResults3D() {
+function drawWheelHD(angleOffset) {
+    const canvas = document.getElementById('wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const radius = canvas.width / 2;
     const numSlices = rouletteNumbers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
 
-    let currentRotation = wheelGroup.rotation.y % (2 * Math.PI);
-    if (currentRotation < 0) currentRotation += 2 * Math.PI;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(radius, radius);
 
-    let winningIndex = Math.floor(currentRotation / sliceAngle) % numSlices;
+    // BORDE EXTERIOR DE MADERA/ORO
+    let woodGrad = ctx.createRadialGradient(0, 0, radius - 20, 0, 0, radius);
+    woodGrad.addColorStop(0, '#3a1700');
+    woodGrad.addColorStop(0.7, '#1b0a00');
+    woodGrad.addColorStop(1, '#d4af37');
+
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - 5, 0, 2 * Math.PI);
+    ctx.fillStyle = woodGrad;
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#d4af37';
+    ctx.stroke();
+
+    // ROTACIÓN DE LA RUEDA
+    ctx.rotate(angleOffset);
+
+    for (let i = 0; i < numSlices; i++) {
+        const angle = i * sliceAngle;
+        const num = rouletteNumbers[i];
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius - 35, angle, angle + sliceAngle);
+        ctx.closePath();
+
+        if (num === 0) ctx.fillStyle = '#008744';
+        else ctx.fillStyle = redNumbers.includes(num) ? '#d32f2f' : '#111111';
+
+        ctx.fill();
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // NÚMEROS EN HD
+        ctx.save();
+        ctx.rotate(angle + sliceAngle / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Montserrat';
+        ctx.textAlign = 'right';
+        ctx.fillText(num, radius - 45, 4);
+        ctx.restore();
+    }
+
+    // TORRETA CENTRAL DORADA
+    let centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 45);
+    centerGrad.addColorStop(0, '#fffae6');
+    centerGrad.addColorStop(0.5, '#d4af37');
+    centerGrad.addColorStop(1, '#594100');
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 45, 0, 2 * Math.PI);
+    ctx.fillStyle = centerGrad;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#222';
+    ctx.stroke();
+
+    // CRUZ DE LA TORRETA
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(-32, -4, 64, 8);
+    ctx.fillRect(-4, -32, 8, 64);
+
+    ctx.restore();
+}
+
+function spinWheel() {
+    if (isSpinning) return;
+    if (activeBets.length === 0) {
+        alert("⚠️ Realiza al menos una apuesta en el paño antes de girar.");
+        return;
+    }
+
+    isSpinning = true;
+    const msg = document.getElementById('live-payout-message');
+    if (msg) msg.innerText = "🎲 GIRANDO RUEDA...";
+
+    let speed = 0.35;
+    let ballAngle = Math.random() * Math.PI * 2;
+
+    function animate() {
+        if (speed > 0.0015) {
+            speed *= 0.985;
+            currentAngle += speed;
+            ballAngle -= speed * 1.5;
+
+            drawWheelHD(currentAngle);
+
+            // DIBUJAR BOLA DE MARFIL GIRANDO EN EL BORDE
+            const canvas = document.getElementById('wheel-canvas');
+            const ctx = canvas.getContext('2d');
+            const radius = canvas.width / 2;
+            let ballRadius = radius - 40;
+
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.beginPath();
+            ctx.arc(Math.cos(ballAngle) * ballRadius, Math.sin(ballAngle) * ballRadius, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.restore();
+
+            requestAnimationFrame(animate);
+        } else {
+            isSpinning = false;
+            evaluateResultsHD();
+        }
+    }
+    animate();
+}
+
+function evaluateResultsHD() {
+    const numSlices = rouletteNumbers.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+    
+    let normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+    let winningIndex = Math.floor(normalizedAngle / sliceAngle);
     let winningNumber = rouletteNumbers[winningIndex];
     let isRed = redNumbers.includes(winningNumber);
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
@@ -296,9 +324,18 @@ function evaluateResults3D() {
             if (bet.eleccion === 1 && winningNumber <= 12) { won = true; mult = 2; }
             if (bet.eleccion === 2 && winningNumber >= 13 && winningNumber <= 24) { won = true; mult = 2; }
             if (bet.eleccion === 3 && winningNumber >= 25) { won = true; mult = 2; }
+        } else if (bet.tipo === 'COLUMNA' && winningNumber !== 0) {
+            // Comprobación de columnas (2 to 1)
+            let col = bet.eleccion;
+            if (winningNumber % 3 === col % 3) { won = true; mult = 2; }
+        } else if (bet.tipo === 'PASO' && winningNumber !== 0) {
+            if (bet.eleccion === 1 && winningNumber <= 18) { won = true; mult = 1; }
+            if (bet.eleccion === 2 && winningNumber >= 19) { won = true; mult = 1; }
         }
 
-        if (won) totalPayout += bet.monto + (bet.monto * mult);
+        if (won) {
+            totalPayout += bet.monto + (bet.monto * mult);
+        }
     });
 
     if (totalPayout > 0) {
@@ -309,9 +346,10 @@ function evaluateResults3D() {
 
     const msg = document.getElementById('live-payout-message');
     if (msg) {
-        let text = `🎯 RESULTADO: ${winningNumber} (${colorStr}). `;
-        text += totalPayout > 0 ? `🎉 GANASTE $${totalPayout}!` : `❌ SIN PREMIO.`;
+        let text = `🎯 CAYÓ ${winningNumber} (${colorStr}). `;
+        text += totalPayout > 0 ? `🎉 ¡PREMIO TOTAL: $${totalPayout}!` : `❌ SIN PREMIO.`;
         msg.innerText = text;
     }
     activeBets = [];
+    drawWheelHD(currentAngle);
 }
