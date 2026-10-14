@@ -1,3 +1,4 @@
+// SONIDOS SINTETIZADOS DE ALTA FIDELIDAD
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -9,27 +10,42 @@ function playSound(type) {
 
     if (type === 'chip') {
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.06);
+        osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.05);
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.06);
+        osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === 'spin') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 1.5);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.5);
     } else if (type === 'win') {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
         osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
         osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+        osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
+        osc.stop(audioCtx.currentTime + 0.6);
     }
 }
 
+// GESTIÓN DE BASE DE DATOS LOCAL
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
-    return users ? JSON.parse(users) : { "admin": { pass: "1234", chips: 5000 } };
+    if (!users) {
+        let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
+        localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
+        return defaultUsers;
+    }
+    return JSON.parse(users);
 }
 
 function saveUserChips() {
@@ -44,19 +60,21 @@ function saveUserChips() {
 let currentUser = sessionStorage.getItem('active_user') || null;
 let currentChips = 0;
 let currentBetAmount = 50;
-let activeBets = []; // Soporta múltiples apuestas simultáneas
+let activeBets = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
+            const inputUser = document.getElementById('username').value.trim().toLowerCase();
+            const inputPass = document.getElementById('password').value.trim();
             let users = getUsersDB();
 
-            if (users[user] && String(users[user].pass) === String(pass)) {
-                sessionStorage.setItem('active_user', user);
+            let matchedUserKey = Object.keys(users).find(key => key.toLowerCase() === inputUser);
+
+            if (matchedUserKey && String(users[matchedUserKey].pass) === String(inputPass)) {
+                sessionStorage.setItem('active_user', matchedUserKey);
                 window.location.href = "ruleta.html";
             } else {
                 alert("❌ Usuario o contraseña incorrectos.");
@@ -79,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = "index.html";
         }
         initBoard();
-        drawWheelHD(0);
+        drawWheelHD(0, null);
     }
 });
 
@@ -120,17 +138,15 @@ function selectChip(val, el) {
     if (el) el.classList.add('active');
 }
 
-// SISTEMA DE APUESTAS MÚLTIPLES
 function placeBet(tipo, eleccion) {
     if (currentChips < currentBetAmount) {
-        alert("❌ ¡No tienes suficientes fichas para esta apuesta!");
+        alert("❌ ¡No tienes suficientes fichas!");
         return;
     }
     currentChips -= currentBetAmount;
     updateChipsDisplay();
     playSound('chip');
 
-    // Acumula o agrega la apuesta
     let existingBet = activeBets.find(b => b.tipo === tipo && b.eleccion === eleccion);
     if (existingBet) {
         existingBet.monto += currentBetAmount;
@@ -152,13 +168,10 @@ function placeSpecialBet(sector) {
 
     let totalCost = numbersToBet.length * currentBetAmount;
     if (currentChips < totalCost) {
-        alert("❌ Fichas insuficientes para cubrir este sector.");
+        alert("❌ Fichas insuficientes para este sector.");
         return;
     }
-
-    numbersToBet.forEach(num => {
-        placeBet('PLENO', num);
-    });
+    numbersToBet.forEach(num => placeBet('PLENO', num));
 }
 
 function clearBets() {
@@ -170,11 +183,11 @@ function clearBets() {
     if (msg) msg.innerText = "APUESTAS LIMPIADAS";
 }
 
-// RENDERIZADO HD DE LA RUEDA Y BOLA
+// RENDERIZADO FOTORREALISTA HD Y BOLA DE MARFIL
 let currentAngle = 0;
 let isSpinning = false;
 
-function drawWheelHD(angleOffset) {
+function drawWheelHD(angleOffset, ballPos) {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -186,18 +199,18 @@ function drawWheelHD(angleOffset) {
     ctx.save();
     ctx.translate(radius, radius);
 
-    // BORDE EXTERIOR DE MADERA/ORO
-    let woodGrad = ctx.createRadialGradient(0, 0, radius - 20, 0, 0, radius);
-    woodGrad.addColorStop(0, '#3a1700');
-    woodGrad.addColorStop(0.7, '#1b0a00');
+    // BORDE DE MADERA BARNIZADA Y METAL DORADO
+    let woodGrad = ctx.createRadialGradient(0, 0, radius - 28, 0, 0, radius);
+    woodGrad.addColorStop(0, '#260d00');
+    woodGrad.addColorStop(0.6, '#4d1a00');
     woodGrad.addColorStop(1, '#d4af37');
 
     ctx.beginPath();
-    ctx.arc(0, 0, radius - 5, 0, 2 * Math.PI);
+    ctx.arc(0, 0, radius - 4, 0, 2 * Math.PI);
     ctx.fillStyle = woodGrad;
     ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#ffd700';
     ctx.stroke();
 
     // ROTACIÓN DE LA RUEDA
@@ -209,47 +222,62 @@ function drawWheelHD(angleOffset) {
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius - 35, angle, angle + sliceAngle);
+        ctx.arc(0, 0, radius - 42, angle, angle + sliceAngle);
         ctx.closePath();
 
         if (num === 0) ctx.fillStyle = '#008744';
-        else ctx.fillStyle = redNumbers.includes(num) ? '#d32f2f' : '#111111';
+        else ctx.fillStyle = redNumbers.includes(num) ? '#d92020' : '#111111';
 
         ctx.fill();
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#c5a059';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // NÚMEROS EN HD
+        // NÚMEROS HD DEFINIDOS
         ctx.save();
         ctx.rotate(angle + sliceAngle / 2);
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px Montserrat';
+        ctx.font = 'bold 12px Montserrat';
         ctx.textAlign = 'right';
-        ctx.fillText(num, radius - 45, 4);
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 3;
+        ctx.fillText(num, radius - 55, 4);
         ctx.restore();
     }
 
-    // TORRETA CENTRAL DORADA
-    let centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 45);
-    centerGrad.addColorStop(0, '#fffae6');
+    // CENTRO METÁLICO DORADO Y TORRETA
+    let centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 50);
+    centerGrad.addColorStop(0, '#fff5c0');
     centerGrad.addColorStop(0.5, '#d4af37');
-    centerGrad.addColorStop(1, '#594100');
+    centerGrad.addColorStop(1, '#4a3500');
 
     ctx.beginPath();
-    ctx.arc(0, 0, 45, 0, 2 * Math.PI);
+    ctx.arc(0, 0, 50, 0, 2 * Math.PI);
     ctx.fillStyle = centerGrad;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#222';
+    ctx.strokeStyle = '#111';
     ctx.stroke();
 
     // CRUZ DE LA TORRETA
-    ctx.fillStyle = '#ffd700';
-    ctx.fillRect(-32, -4, 64, 8);
-    ctx.fillRect(-4, -32, 8, 64);
+    ctx.fillStyle = '#ffea75';
+    ctx.fillRect(-38, -5, 76, 10);
+    ctx.fillRect(-5, -38, 10, 76);
 
     ctx.restore();
+
+    // DIBUJAR BOLA DE MARFIL SI ESTÁ ACTIVA
+    if (ballPos) {
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.beginPath();
+        ctx.arc(ballPos.x, ballPos.y, 7, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.restore();
+    }
 }
 
 function spinWheel() {
@@ -260,36 +288,30 @@ function spinWheel() {
     }
 
     isSpinning = true;
+    playSound('spin');
     const msg = document.getElementById('live-payout-message');
-    if (msg) msg.innerText = "🎲 GIRANDO RUEDA...";
+    if (msg) msg.innerText = "🎲 GIRANDO RUEDA Y BOLA...";
 
-    let speed = 0.35;
+    let wheelSpeed = 0.35;
     let ballAngle = Math.random() * Math.PI * 2;
+    let ballSpeed = 0.5;
+    let ballRadius = 130;
 
     function animate() {
-        if (speed > 0.0015) {
-            speed *= 0.985;
-            currentAngle += speed;
-            ballAngle -= speed * 1.5;
+        if (wheelSpeed > 0.0012) {
+            wheelSpeed *= 0.987;
+            ballSpeed *= 0.985;
+            currentAngle += wheelSpeed;
+            ballAngle -= ballSpeed;
 
-            drawWheelHD(currentAngle);
+            if (ballRadius > 75) {
+                ballRadius -= 0.3; // Física de caída hacia los números
+            }
 
-            // DIBUJAR BOLA DE MARFIL GIRANDO EN EL BORDE
-            const canvas = document.getElementById('wheel-canvas');
-            const ctx = canvas.getContext('2d');
-            const radius = canvas.width / 2;
-            let ballRadius = radius - 40;
+            let bx = Math.cos(ballAngle) * ballRadius;
+            let by = Math.sin(ballAngle) * ballRadius;
 
-            ctx.save();
-            ctx.translate(radius, radius);
-            ctx.beginPath();
-            ctx.arc(Math.cos(ballAngle) * ballRadius, Math.sin(ballAngle) * ballRadius, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = '#000';
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.restore();
-
+            drawWheelHD(currentAngle, { x: bx, y: by });
             requestAnimationFrame(animate);
         } else {
             isSpinning = false;
@@ -325,7 +347,6 @@ function evaluateResultsHD() {
             if (bet.eleccion === 2 && winningNumber >= 13 && winningNumber <= 24) { won = true; mult = 2; }
             if (bet.eleccion === 3 && winningNumber >= 25) { won = true; mult = 2; }
         } else if (bet.tipo === 'COLUMNA' && winningNumber !== 0) {
-            // Comprobación de columnas (2 to 1)
             let col = bet.eleccion;
             if (winningNumber % 3 === col % 3) { won = true; mult = 2; }
         } else if (bet.tipo === 'PASO' && winningNumber !== 0) {
@@ -351,5 +372,5 @@ function evaluateResultsHD() {
         msg.innerText = text;
     }
     activeBets = [];
-    drawWheelHD(currentAngle);
+    drawWheelHD(currentAngle, null);
 }
