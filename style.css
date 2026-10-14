@@ -7,7 +7,7 @@
 }
 
 body.pokerstars-theme {
-    background: #0b0e11 url('https://www.transparenttextures.com/patterns/dark-leather.png');
+    background: #090c10 url('https://www.transparenttextures.com/patterns/dark-leather.png');
     color: #ffffff;
     min-height: 100vh;
     display: flex;
@@ -21,8 +21,8 @@ body.pokerstars-theme {
     justify-content: space-between;
     align-items: center;
     padding: 10px 25px;
-    background: #12161c;
-    border-bottom: 2px solid #1e2530;
+    background: #11151c;
+    border-bottom: 2px solid #1c232e;
 }
 
 .brand {
@@ -31,41 +31,13 @@ body.pokerstars-theme {
     gap: 8px;
 }
 
-.star-icon {
-    color: #e61c24;
-    font-size: 1.4rem;
-}
+.star-icon { color: #e61c24; font-size: 1.4rem; }
+.brand-title { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
 
-.brand-title {
-    font-weight: 800;
-    font-size: 1.1rem;
-    letter-spacing: 1px;
-    color: #fff;
-}
-
-.user-stats {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.stat-label {
-    font-size: 0.65rem;
-    color: #6b7a8d;
-    font-weight: 700;
-}
-
-.stat-val {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #2ecc71;
-}
+.user-stats { display: flex; align-items: center; gap: 20px; }
+.stat-box { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-label { font-size: 0.65rem; color: #6b7a8d; font-weight: 700; }
+.stat-val { font-size: 1.1rem; font-weight: 700; color: #2ecc71; }
 
 .btn-exit {
     background: #e61c24;
@@ -84,34 +56,34 @@ body.pokerstars-theme {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: 25px;
     padding: 20px;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
 }
 
-/* WHEEL SECTION */
 .wheel-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
 }
 
-.wheel-container {
-    width: 440px;
-    height: 440px;
-    position: relative;
-    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+.wheel-container-3d {
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 0 15px rgba(255,215,0,0.2);
+    overflow: hidden;
+    background: #000;
 }
 
 /* CHIPS RACK */
 .chips-rack {
     display: flex;
     gap: 12px;
-    margin-top: 20px;
-    background: rgba(0,0,0,0.5);
+    margin-top: 15px;
+    background: rgba(0,0,0,0.6);
     padding: 10px 18px;
     border-radius: 30px;
     border: 1px solid #222;
@@ -146,8 +118,8 @@ body.pokerstars-theme {
 /* BOARD SECTION */
 .board-section {
     flex: 1;
-    min-width: 600px;
-    max-width: 750px;
+    min-width: 580px;
+    max-width: 720px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -165,16 +137,11 @@ body.pokerstars-theme {
 }
 
 /* RACETRACK */
-.racetrack-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 5px;
-}
-
+.racetrack-container { display: flex; justify-content: center; margin-bottom: 5px; }
 .racetrack {
     display: flex;
     width: 100%;
-    height: 45px;
+    height: 42px;
     border: 2px solid #555;
     border-radius: 25px;
     overflow: hidden;
@@ -193,43 +160,19 @@ body.pokerstars-theme {
     cursor: pointer;
     text-transform: uppercase;
 }
+.rt-sector:hover { background: #1e2836; color: #fff; }
 
-.rt-sector:hover {
-    background: #1e2836;
-    color: #fff;
-}
-
-/* QUICK COLOR BETS */
-.quick-color-bets {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-.btn-quick {
-    padding: 4px 18px;
-    border: none;
-    border-radius: 3px;
-    font-weight: 800;
-    font-size: 0.75rem;
-    color: #fff;
-    cursor: pointer;
-}
-
+/* QUICK BETS */
+.quick-color-bets { display: flex; justify-content: center; align-items: center; gap: 15px; }
+.btn-quick { padding: 4px 18px; border: none; border-radius: 3px; font-weight: 800; font-size: 0.75rem; color: #fff; cursor: pointer; }
 .btn-quick.red { background: #d32f2f; }
 .btn-quick.black { background: #111; border: 1px solid #444; }
 .split-divider { font-size: 0.65rem; color: #666; font-weight: 700; }
 
 /* MAIN TABLE GRID */
-.main-table-grid {
-    display: flex;
-    border: 2px solid #ffffff;
-    background: #161b22;
-}
-
+.main-table-grid { display: flex; border: 2px solid #ffffff; background: #161b22; }
 .zero-tile {
-    width: 50px;
+    width: 48px;
     background: #008744;
     display: flex;
     justify-content: center;
@@ -243,7 +186,7 @@ body.pokerstars-theme {
 .numbers-wrapper {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: repeat(3, 42px);
+    grid-template-rows: repeat(3, 40px);
     flex: 1;
 }
 
@@ -252,20 +195,14 @@ body.pokerstars-theme {
     justify-content: center;
     align-items: center;
     font-weight: 800;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border: 1px solid rgba(255,255,255,0.2);
     cursor: pointer;
 }
-
 .num-cell.red { background: #d32f2f; color: #fff; }
 .num-cell.black { background: #111111; color: #fff; }
 
-.column-bets {
-    display: flex;
-    flex-direction: column;
-    width: 60px;
-}
-
+.column-bets { display: flex; flex-direction: column; width: 55px; }
 .col-tile {
     flex: 1;
     display: flex;
@@ -291,7 +228,7 @@ body.pokerstars-theme {
 .doz-tile {
     grid-column: span 2;
     background: #0f141a;
-    height: 38px;
+    height: 36px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -302,7 +239,7 @@ body.pokerstars-theme {
 
 .ext-tile {
     background: #0f141a;
-    height: 38px;
+    height: 36px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -311,30 +248,12 @@ body.pokerstars-theme {
     cursor: pointer;
 }
 
-.diamond {
-    width: 16px;
-    height: 16px;
-    transform: rotate(45deg);
-}
+.diamond { width: 14px; height: 14px; transform: rotate(45deg); }
 .diamond.red { background: #d32f2f; }
 .diamond.black { background: #111; border: 1px solid #555; }
 
 /* ACTION BAR */
-.action-bar {
-    display: flex;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.btn-action {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    font-weight: 800;
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
+.action-bar { display: flex; gap: 15px; margin-top: 10px; }
+.btn-action { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: 800; font-size: 0.9rem; cursor: pointer; }
 .btn-action.clear { background: #333; color: #fff; }
 .btn-action.spin { background: #008744; color: #fff; }
