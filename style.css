@@ -61,20 +61,19 @@ body.pokerstars-theme {
     display: flex;
     justify-content: center;
     width: 100%;
-    filter: drop-shadow(0 12px 25px rgba(0,0,0,0.9));
 }
 
-.wheel-container-hd {
-    width: 340px;
-    height: 340px;
+.wheel-stage {
+    width: 320px;
+    height: 320px;
     border-radius: 50%;
     overflow: hidden;
-    background: #111;
-    border: 4px solid #d4af37;
     position: relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.9), 0 0 15px rgba(212,175,55,0.4);
+    border: 4px solid #d4af37;
+    background: #000;
 }
 
-/* CORRECCIÓN CLAVE PARA QUE EL CANVAS SE VEA PERFECTO */
 #wheel-canvas {
     width: 100%;
     height: 100%;
@@ -86,7 +85,7 @@ body.pokerstars-theme {
     font-size: 0.8rem;
     font-weight: 700;
     color: #ffd700;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
     width: 100%;
     padding: 6px;
     border-radius: 4px;
@@ -173,6 +172,7 @@ body.pokerstars-theme {
     font-weight: 800;
     border-right: 2px solid #fff;
     cursor: pointer;
+    position: relative;
 }
 
 .numbers-wrapper {
@@ -190,9 +190,24 @@ body.pokerstars-theme {
     font-size: 0.85rem;
     border: 1px solid rgba(255,255,255,0.2);
     cursor: pointer;
+    position: relative;
 }
 .num-cell.red { background: #d32f2f; color: #fff; }
 .num-cell.black { background: #111111; color: #fff; }
+
+.bet-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #ffd700;
+    color: #000;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 1px 3px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
 
 .column-bets { display: flex; flex-direction: column; width: 45px; }
 .col-tile {
