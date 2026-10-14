@@ -2,121 +2,339 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    user-select: none;
 }
 
-body {
-    background-color: #0d131a;
+body.pokerstars-theme {
+    background: #0b0e11 url('https://www.transparenttextures.com/patterns/dark-leather.png');
     color: #ffffff;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    overflow-x: hidden;
 }
 
-.screen {
-    display: none;
+/* HEADER */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px;
+    background: #12161c;
+    border-bottom: 2px solid #1e2530;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.star-icon {
+    color: #e61c24;
+    font-size: 1.4rem;
+}
+
+.brand-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
+.user-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    color: #6b7a8d;
+    font-weight: 700;
+}
+
+.stat-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2ecc71;
+}
+
+.btn-exit {
+    background: #e61c24;
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+/* CASINO TABLE LAYOUT */
+.casino-table {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
     width: 100%;
 }
 
-.screen.active {
+/* WHEEL SECTION */
+.wheel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.wheel-container {
+    width: 440px;
+    height: 440px;
+    position: relative;
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+}
+
+/* CHIPS RACK */
+.chips-rack {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 18px;
+    border-radius: 30px;
+    border: 1px solid #222;
+}
+
+.chip-stack {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     display: flex;
     justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 3px dashed #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+    transition: transform 0.15s ease;
 }
 
-.login-card {
-    background: rgba(20, 25, 33, 0.95);
-    border: 2px solid #d4af37;
-    border-radius: 12px;
-    padding: 30px;
-    width: 90%;
-    max-width: 400px;
+.chip-stack:hover, .chip-stack.active {
+    transform: translateY(-6px) scale(1.1);
+    box-shadow: 0 8px 15px rgba(255,255,255,0.3);
+}
+
+.c-purple { background: radial-gradient(circle, #8e44ad, #5b2c6f); color: #fff; }
+.c-green { background: radial-gradient(circle, #27ae60, #1e8449); color: #fff; }
+.c-red { background: radial-gradient(circle, #e74c3c, #922b21); color: #fff; }
+.c-blue { background: radial-gradient(circle, #2980b9, #1b4f72); color: #fff; }
+.c-black { background: radial-gradient(circle, #34495e, #1a252f); color: #fff; }
+
+/* BOARD SECTION */
+.board-section {
+    flex: 1;
+    min-width: 600px;
+    max-width: 750px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.status-banner {
     text-align: center;
-    box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #e61c24;
+    padding: 6px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
 }
 
-.logo h1 {
-    font-family: 'Cinzel', serif;
-    color: #ffd700;
-    font-size: 2rem;
-    letter-spacing: 2px;
-}
-
-.logo p {
-    color: #8a9ba8;
-    font-size: 0.75rem;
-    margin-bottom: 25px;
-}
-
-.input-group {
-    text-align: left;
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 0.85rem;
-    color: #d4af37;
+/* RACETRACK */
+.racetrack-container {
+    display: flex;
+    justify-content: center;
     margin-bottom: 5px;
 }
 
-.input-group input {
+.racetrack {
+    display: flex;
     width: 100%;
-    padding: 10px 15px;
-    background: #0d131a;
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #fff;
-    outline: none;
+    height: 45px;
+    border: 2px solid #555;
+    border-radius: 25px;
+    overflow: hidden;
+    background: #0f141a;
 }
 
-.btn-primary {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #d4af37, #aa7c11);
+.rt-sector {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #aaa;
+    border-right: 1px solid #333;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.rt-sector:hover {
+    background: #1e2836;
+    color: #fff;
+}
+
+/* QUICK COLOR BETS */
+.quick-color-bets {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-quick {
+    padding: 4px 18px;
     border: none;
-    border-radius: 6px;
-    color: #000;
+    border-radius: 3px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    color: #fff;
+    cursor: pointer;
+}
+
+.btn-quick.red { background: #d32f2f; }
+.btn-quick.black { background: #111; border: 1px solid #444; }
+.split-divider { font-size: 0.65rem; color: #666; font-weight: 700; }
+
+/* MAIN TABLE GRID */
+.main-table-grid {
+    display: flex;
+    border: 2px solid #ffffff;
+    background: #161b22;
+}
+
+.zero-tile {
+    width: 50px;
+    background: #008744;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    border-right: 2px solid #fff;
+    cursor: pointer;
+}
+
+.numbers-wrapper {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(3, 42px);
+    flex: 1;
+}
+
+.num-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+}
+
+.num-cell.red { background: #d32f2f; color: #fff; }
+.num-cell.black { background: #111111; color: #fff; }
+
+.column-bets {
+    display: flex;
+    flex-direction: column;
+    width: 60px;
+}
+
+.col-tile {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    background: #0f141a;
+}
+
+/* OUTSIDE BETS */
+.outside-bets-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    background: #fff;
+    border: 2px solid #fff;
+    margin-top: -2px;
+}
+
+.doz-tile {
+    grid-column: span 2;
+    background: #0f141a;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
 }
 
-.btn-small {
-    padding: 8px 12px;
-    background: #111;
-    border: 1px solid #d4af37;
-    color: #ffd700;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.chip {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #ffd700 40%, #aa7c11 100%);
-    color: #000;
-    font-weight: 800;
+.ext-tile {
+    background: #0f141a;
+    height: 38px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 2px dashed #000;
+    font-size: 0.75rem;
+    font-weight: 700;
     cursor: pointer;
 }
 
-.chip.active {
-    box-shadow: 0 0 12px #ffd700;
-    transform: scale(1.1);
+.diamond {
+    width: 16px;
+    height: 16px;
+    transform: rotate(45deg);
+}
+.diamond.red { background: #d32f2f; }
+.diamond.black { background: #111; border: 1px solid #555; }
+
+/* ACTION BAR */
+.action-bar {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
 }
 
-.tile {
-    background: #111;
-    border: 1px solid #444;
-    color: #fff;
-    font-weight: bold;
+.btn-action {
+    flex: 1;
+    padding: 12px;
+    border: none;
     border-radius: 4px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
 }
 
-.tile.red { background: #b22222; }
-.tile.green { background: #008000; }
+.btn-action.clear { background: #333; color: #fff; }
+.btn-action.spin { background: #008744; color: #fff; }
