@@ -1,4 +1,3 @@
-// SONIDO SINTETIZADO
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -28,15 +27,9 @@ function playSound(type) {
     }
 }
 
-// GESTIÓN DE BASE DE DATOS LOCAL
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
-    if (!users) {
-        let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
-        localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
-        return defaultUsers;
-    }
-    return JSON.parse(users);
+    return users ? JSON.parse(users) : { "admin": { pass: "1234", chips: 5000 } };
 }
 
 function saveUserChips() {
@@ -53,7 +46,6 @@ let currentChips = 0;
 let currentBetAmount = 50;
 let activeBets = [];
 
-// LOGIN LISTENER
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
@@ -66,7 +58,7 @@ if (loginForm) {
             sessionStorage.setItem('active_user', user);
             window.location.href = "ruleta.html";
         } else {
-            alert("❌ Usuario o contraseña incorrectos, o no registrado por el cajero.");
+            alert("❌ Usuario o contraseña incorrectos.");
         }
     });
 }
@@ -76,7 +68,6 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// RULETA EUROPEA (37 NÚMEROS)
 const rouletteNumbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const redNumbers = [32, 19, 21, 25, 34, 27, 36, 30, 23, 5, 1, 14, 9, 18, 7, 12, 3, 26];
 
@@ -152,12 +143,12 @@ function clearBets() {
     if (msg) msg.innerText = "APUESTAS LIMPIADAS";
 }
 
-// MOTOR 3D (THREE.JS)
+// MOTOR 3D CON CÁMARA AJUSTADA
 let scene, camera, renderer, wheelGroup, ballMesh;
 let isSpinning3D = false;
 let wheelSpeed = 0;
 let ballAngle = 0;
-let ballRadius = 8.2;
+let ballRadius = 7.5;
 let ballSpeed = 0;
 
 function init3DWheel() {
@@ -165,62 +156,68 @@ function init3DWheel() {
     if (!container) return;
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(40, 1, 0.1, 1000);
-    camera.position.set(0, 12, 14);
+    
+    // CÁMARA ALEJADA PARA VER TODA LA RUEDA COMPLETA
+    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    camera.position.set(0, 16, 16);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(420, 420);
+    renderer.setSize(320, 320);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xfff5ea, 1.2);
-    mainLight.position.set(10, 20, 15);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    mainLight.position.set(5, 15, 10);
     scene.add(mainLight);
 
     wheelGroup = new THREE.Group();
     scene.add(wheelGroup);
 
+    // BASE DE MADERA
     const woodBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(10, 10.5, 1.2, 64),
+        new THREE.CylinderGeometry(9, 9.5, 1, 64),
         new THREE.MeshStandardMaterial({ color: 0x2b1100, roughness: 0.3 })
     );
-    woodBase.position.y = -0.6;
+    woodBase.position.y = -0.5;
     scene.add(woodBase);
 
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.1, metalness: 0.9 });
     
-    const goldRing = new THREE.Mesh(new THREE.TorusGeometry(8.8, 0.3, 16, 100), goldMat);
+    // ANILLO DORADO EXTERIOR
+    const goldRing = new THREE.Mesh(new THREE.TorusGeometry(8, 0.25, 16, 100), goldMat);
     goldRing.rotation.x = Math.PI / 2;
     scene.add(goldRing);
 
+    // DISCO INTERIOR DE LA RUEDA
     const innerWheel = new THREE.Mesh(
-        new THREE.CylinderGeometry(8.5, 2, 0.8, 37),
+        new THREE.CylinderGeometry(7.5, 2, 0.6, 37),
         new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 })
     );
     wheelGroup.add(innerWheel);
 
-    const turret = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.2, 2.5, 32), goldMat);
-    turret.position.y = 0.8;
+    // TORRETA CENTRAL
+    const turret = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.8, 2, 32), goldMat);
+    turret.position.y = 0.6;
     wheelGroup.add(turret);
 
-    const cross1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 0.6), goldMat);
-    cross1.position.y = 1.8;
+    const cross1 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 0.5), goldMat);
+    cross1.position.y = 1.5;
     wheelGroup.add(cross1);
 
-    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 4.5), goldMat);
-    cross2.position.y = 1.8;
+    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 3.8), goldMat);
+    cross2.position.y = 1.5;
     wheelGroup.add(cross2);
 
+    // BOLA DE MARFIL
     ballMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.35, 32, 32),
+        new THREE.SphereGeometry(0.3, 32, 32),
         new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 })
     );
-    ballMesh.position.set(ballRadius, 0.5, 0);
+    ballMesh.position.set(ballRadius, 0.4, 0);
     scene.add(ballMesh);
 
     function animate3D() {
@@ -233,7 +230,7 @@ function init3DWheel() {
             ballAngle -= ballSpeed;
             ballSpeed *= 0.985;
 
-            if (ballSpeed < 0.08 && ballRadius > 4.5) {
+            if (ballSpeed < 0.08 && ballRadius > 4) {
                 ballRadius -= 0.03;
             }
 
@@ -264,7 +261,7 @@ function spinWheel3D() {
     isSpinning3D = true;
     wheelSpeed = 0.35;
     ballSpeed = 0.45;
-    ballRadius = 8.2;
+    ballRadius = 7.5;
     
     const msg = document.getElementById('live-payout-message');
     if (msg) msg.innerText = "🎲 GIRANDO RUEDA 3D...";
