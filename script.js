@@ -28,15 +28,15 @@ function playSound(type) {
     }
 }
 
-// ESTADO DE USUARIO
-let currentUser = sessionStorage.getItem('active_user') || null;
-let currentChips = 0;
-let currentBetAmount = 50;
-let activeBets = [];
-
+// GESTIÓN DE BASE DE DATOS LOCAL
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
-    return users ? JSON.parse(users) : { "admin": { pass: "1234", chips: 5000 } };
+    if (!users) {
+        let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
+        localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
+        return defaultUsers;
+    }
+    return JSON.parse(users);
 }
 
 function saveUserChips() {
@@ -48,7 +48,12 @@ function saveUserChips() {
     }
 }
 
-// LOGIN & LOGOUT
+let currentUser = sessionStorage.getItem('active_user') || null;
+let currentChips = 0;
+let currentBetAmount = 50;
+let activeBets = [];
+
+// LOGIN LISTENER
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
@@ -61,7 +66,7 @@ if (loginForm) {
             sessionStorage.setItem('active_user', user);
             window.location.href = "ruleta.html";
         } else {
-            alert("❌ Usuario o contraseña incorrectos.");
+            alert("❌ Usuario o contraseña incorrectos, o no registrado por el cajero.");
         }
     });
 }
@@ -71,7 +76,7 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// RULETA EUROPEA (37 CASILLEROS)
+// RULETA EUROPEA (37 NÚMEROS)
 const rouletteNumbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const redNumbers = [32, 19, 21, 25, 34, 27, 36, 30, 23, 5, 1, 14, 9, 18, 7, 12, 3, 26];
 
@@ -159,7 +164,6 @@ function init3DWheel() {
     const container = document.getElementById('canvas-3d-container');
     if (!container) return;
 
-    // ESCENA, CAMARA Y RENDERIZADOR
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(40, 1, 0.1, 1000);
     camera.position.set(0, 12, 14);
@@ -169,99 +173,68 @@ function init3DWheel() {
     renderer.setSize(420, 420);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // ILUMINACIÓN REALISTA
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
     const mainLight = new THREE.DirectionalLight(0xfff5ea, 1.2);
     mainLight.position.set(10, 20, 15);
-    mainLight.castShadow = true;
     scene.add(mainLight);
 
-    const goldPointLight = new THREE.PointLight(0xffd700, 0.8, 20);
-    goldPointLight.position.set(0, 5, 0);
-    scene.add(goldPointLight);
-
-    // GRUPO DE LA RUEDA 3D
     wheelGroup = new THREE.Group();
     scene.add(wheelGroup);
 
-    // BASE DE MADERA Y BISLE
-    const woodGeo = new THREE.CylinderGeometry(10, 10.5, 1.2, 64);
-    const woodMat = new THREE.MeshStandardMaterial({
-        color: 0x2b1100,
-        roughness: 0.3,
-        metalness: 0.1
-    });
-    const woodBase = new THREE.Mesh(woodGeo, woodMat);
+    const woodBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(10, 10.5, 1.2, 64),
+        new THREE.MeshStandardMaterial({ color: 0x2b1100, roughness: 0.3 })
+    );
     woodBase.position.y = -0.6;
     scene.add(woodBase);
 
-    // ANILLO METÁLICO DORADO
-    const goldRingGeo = new THREE.TorusGeometry(8.8, 0.3, 16, 100);
-    const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xd4af37,
-        roughness: 0.1,
-        metalness: 0.9
-    });
-    const goldRing = new THREE.Mesh(goldRingGeo, goldMat);
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.1, metalness: 0.9 });
+    
+    const goldRing = new THREE.Mesh(new THREE.TorusGeometry(8.8, 0.3, 16, 100), goldMat);
     goldRing.rotation.x = Math.PI / 2;
     scene.add(goldRing);
 
-    // CENTRO CÓNICO CON CASILLEROS
-    const innerGeo = new THREE.CylinderGeometry(8.5, 2, 0.8, 37);
-    const innerMat = new THREE.MeshStandardMaterial({
-        color: 0x111111,
-        roughness: 0.4,
-        metalness: 0.2
-    });
-    const innerWheel = new THREE.Mesh(innerGeo, innerMat);
+    const innerWheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(8.5, 2, 0.8, 37),
+        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 })
+    );
     wheelGroup.add(innerWheel);
 
-    // TORRETA CENTRAL DORADA CON CRUZ
-    const turretGeo = new THREE.CylinderGeometry(1.5, 2.2, 2.5, 32);
-    const turret = new THREE.Mesh(turretGeo, goldMat);
+    const turret = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.2, 2.5, 32), goldMat);
     turret.position.y = 0.8;
     wheelGroup.add(turret);
 
-    const crossArm1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 0.6), goldMat);
-    crossArm1.position.y = 1.8;
-    wheelGroup.add(crossArm1);
+    const cross1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 0.6), goldMat);
+    cross1.position.y = 1.8;
+    wheelGroup.add(cross1);
 
-    const crossArm2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 4.5), goldMat);
-    crossArm2.position.y = 1.8;
-    wheelGroup.add(crossArm2);
+    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 4.5), goldMat);
+    cross2.position.y = 1.8;
+    wheelGroup.add(cross2);
 
-    // BOLA DE MARFIL
-    const ballGeo = new THREE.SphereGeometry(0.35, 32, 32);
-    const ballMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.1,
-        metalness: 0.05
-    });
-    ballMesh = new THREE.Mesh(ballGeo, ballMat);
-    ballMesh.castShadow = true;
+    ballMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35, 32, 32),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 })
+    );
     ballMesh.position.set(ballRadius, 0.5, 0);
     scene.add(ballMesh);
 
-    // BUCLE DE RENDERIZADO
     function animate3D() {
         requestAnimationFrame(animate3D);
 
         if (isSpinning3D) {
-            // ROTACIÓN DE LA RUEDA
             wheelGroup.rotation.y += wheelSpeed;
             wheelSpeed *= 0.988;
 
-            // FÍSICA DE LA BOLA EN SENTIDO OPUESTO
             ballAngle -= ballSpeed;
             ballSpeed *= 0.985;
 
             if (ballSpeed < 0.08 && ballRadius > 4.5) {
-                ballRadius -= 0.03; // Cae hacia el centro
+                ballRadius -= 0.03;
             }
 
             ballMesh.position.x = Math.cos(ballAngle) * ballRadius;
@@ -272,7 +245,7 @@ function init3DWheel() {
                 evaluateResults3D();
             }
         } else {
-            wheelGroup.rotation.y += 0.002; // Giro suave en espera
+            wheelGroup.rotation.y += 0.002;
         }
 
         renderer.render(scene, camera);
