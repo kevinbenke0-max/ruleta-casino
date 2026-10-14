@@ -1,3 +1,4 @@
+// AUDIO Y SONIDOS
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -27,6 +28,7 @@ function playSound(type) {
     }
 }
 
+// CAJERO & LOCALSTORAGE
 function getUsersDB() {
     let users = localStorage.getItem('casino_users');
     if (!users) {
@@ -329,30 +331,42 @@ function evaluateResultsHD() {
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
 
     let totalPayout = 0;
+    let netProfit = 0;
 
     activeBets.forEach(bet => {
         let won = false;
         let mult = 0;
 
-        if (bet.tipo === 'PLENO' && bet.eleccion == winningNumber) { won = true; mult = 35; }
-        else if (bet.tipo === 'COLOR' && bet.eleccion === (isRed ? 'rojo' : 'negro') && winningNumber !== 0) { won = true; mult = 1; }
+        if (bet.tipo === 'PLENO' && bet.eleccion == winningNumber) { 
+            won = true; 
+            mult = 35; // Pleno paga 35 a 1
+        }
+        else if (bet.tipo === 'COLOR' && bet.eleccion === (isRed ? 'rojo' : 'negro') && winningNumber !== 0) { 
+            won = true; 
+            mult = 1;  // Color paga 1 a 1
+        }
         else if (bet.tipo === 'PARIDAD' && winningNumber !== 0) {
             if (bet.eleccion === 'par' && winningNumber % 2 === 0) { won = true; mult = 1; }
             if (bet.eleccion === 'impar' && winningNumber % 2 !== 0) { won = true; mult = 1; }
-        } else if (bet.tipo === 'DOCENA' && winningNumber !== 0) {
-            if (bet.eleccion === 1 && winningNumber <= 12) { won = true; mult = 2; }
+        } 
+        else if (bet.tipo === 'DOCENA' && winningNumber !== 0) {
+            if (bet.eleccion === 1 && winningNumber <= 12) { won = true; mult = 2; } // Docenas pagan 2 a 1
             if (bet.eleccion === 2 && winningNumber >= 13 && winningNumber <= 24) { won = true; mult = 2; }
             if (bet.eleccion === 3 && winningNumber >= 25) { won = true; mult = 2; }
-        } else if (bet.tipo === 'COLUMNA' && winningNumber !== 0) {
+        } 
+        else if (bet.tipo === 'COLUMNA' && winningNumber !== 0) {
             let col = bet.eleccion;
-            if (winningNumber % 3 === col % 3) { won = true; mult = 2; }
-        } else if (bet.tipo === 'PASO' && winningNumber !== 0) {
+            if (winningNumber % 3 === col % 3) { won = true; mult = 2; } // Columnas pagan 2 a 1
+        } 
+        else if (bet.tipo === 'PASO' && winningNumber !== 0) {
             if (bet.eleccion === 1 && winningNumber <= 18) { won = true; mult = 1; }
             if (bet.eleccion === 2 && winningNumber >= 19) { won = true; mult = 1; }
         }
 
         if (won) {
-            totalPayout += bet.monto + (bet.monto * mult);
+            let winAmount = bet.monto * mult;
+            netProfit += winAmount;
+            totalPayout += bet.monto + winAmount; // Devolución de ficha + Ganancia neta
         }
     });
 
@@ -365,9 +379,12 @@ function evaluateResultsHD() {
     const msg = document.getElementById('live-payout-message');
     if (msg) {
         let text = `🎯 CAYÓ ${winningNumber} (${colorStr}). `;
-        text += totalPayout > 0 ? `🎉 ¡PREMIO TOTAL: $${totalPayout}!` : `❌ SIN PREMIO.`;
+        text += totalPayout > 0 
+            ? `🎉 ¡GANASTE +$${netProfit}! (Cobro total: $${totalPayout})` 
+            : `❌ SIN PREMIO.`;
         msg.innerText = text;
     }
+    
     activeBets = [];
     document.querySelectorAll('.bet-badge').forEach(b => b.remove());
     drawWheelHD(currentAngle, null);
