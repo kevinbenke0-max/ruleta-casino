@@ -309,16 +309,16 @@ function evaluateResultsHD() {
     const numSlices = rouletteNumbers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
     
-    // Normalizar el ángulo actual de la rueda para que quede entre 0 y 2*PI
-    let normalizedAngle = (currentAngle % (2 * Math.PI));
-    if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
+    // Obtenemos el ángulo exacto en el que quedó la rueda al frenar
+    let angleNormalized = currentAngle % (2 * Math.PI);
+    if (angleNormalized < 0) angleNormalized += (2 * Math.PI);
     
-    // El indicador fijo está arriba (en el ángulo -PI/2 o 3*PI/2). 
-    // Calculamos qué índice de la lista de números queda exactamente alineado arriba.
-    let effectiveAngle = (2 * Math.PI - normalizedAngle + (Math.PI / 2)) % (2 * Math.PI);
-    let winningIndex = Math.floor(effectiveAngle / sliceAngle) % numSlices;
-    
+    // Como la rueda gira y el indicador está arriba (-PI/2 o 270 grados), 
+    // calculamos exactamente qué porción de la rueda quedó apuntando hacia arriba.
+    let pointerAngle = (2 * Math.PI - angleNormalized) % (2 * Math.PI);
+    let winningIndex = Math.floor((pointerAngle + sliceAngle / 2) / sliceAngle) % numSlices;
     let winningNumber = rouletteNumbers[winningIndex];
+
     let isRed = redNumbers.includes(winningNumber);
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
 
@@ -331,11 +331,11 @@ function evaluateResultsHD() {
 
         if (bet.tipo === 'PLENO' && bet.eleccion == winningNumber) { 
             won = true; 
-            mult = 35; // Pleno paga 35 a 1
+            mult = 35; 
         }
         else if (bet.tipo === 'COLOR' && bet.eleccion === (isRed ? 'rojo' : 'negro') && winningNumber !== 0) { 
             won = true; 
-            mult = 1;  // Color paga 1 a 1
+            mult = 1;  
         }
         else if (bet.tipo === 'PARIDAD' && winningNumber !== 0) {
             if (bet.eleccion === 'par' && winningNumber % 2 === 0) { won = true; mult = 1; }
