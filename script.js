@@ -1,30 +1,14 @@
-// AUDIO Y SONIDOS
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// REPRODUCTOR DE SONIDOS REALES DE CASINO MP3
+const sounds = {
+    chip: new Audio('https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3'),
+    spin: new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3'),
+    win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+};
 
 function playSound(type) {
-    if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    if (type === 'chip') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(900, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.05);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.05);
-    } else if (type === 'win') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
+    if (sounds[type]) {
+        sounds[type].currentTime = 0;
+        sounds[type].play().catch(() => {});
     }
 }
 
