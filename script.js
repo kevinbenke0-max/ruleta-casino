@@ -71,7 +71,7 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// SECUENCIA RULETA EUROPEA (37 NÚMEROS)
+// RULETA EUROPEA (37 CASILLEROS)
 const rouletteNumbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const redNumbers = [32, 19, 21, 25, 34, 27, 36, 30, 23, 5, 1, 14, 9, 18, 7, 12, 3, 26];
 
@@ -90,9 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             window.location.href = "index.html";
         }
+        initBoard();
+        init3DWheel();
     }
-    initBoard();
-    drawWheel();
 });
 
 function updateChipsDisplay() {
@@ -106,7 +106,6 @@ function initBoard() {
     if (!grid) return;
     grid.innerHTML = '';
 
-    // Filas 3, 2, 1 (Estilo clásico)
     for (let row = 3; row >= 1; row--) {
         for (let col = row; col <= 36; col += 3) {
             const isRed = redNumbers.includes(col);
@@ -148,136 +147,164 @@ function clearBets() {
     if (msg) msg.innerText = "APUESTAS LIMPIADAS";
 }
 
-// CANVAS RUEDA HIPER-REALISTA
-const canvas = document.getElementById('wheel-canvas');
-let currentAngle = 0;
-let isSpinning = false;
+// MOTOR 3D (THREE.JS)
+let scene, camera, renderer, wheelGroup, ballMesh;
+let isSpinning3D = false;
+let wheelSpeed = 0;
+let ballAngle = 0;
+let ballRadius = 8.2;
+let ballSpeed = 0;
 
-function drawWheel() {
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const radius = canvas.width / 2;
-    const numSlices = rouletteNumbers.length;
-    const sliceAngle = (2 * Math.PI) / numSlices;
+function init3DWheel() {
+    const container = document.getElementById('canvas-3d-container');
+    if (!container) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ESCENA, CAMARA Y RENDERIZADOR
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(40, 1, 0.1, 1000);
+    camera.position.set(0, 12, 14);
+    camera.lookAt(0, 0, 0);
 
-    // BORDES Y MARCO METALICO EXTERIOR
-    ctx.save();
-    ctx.translate(radius, radius);
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(420, 420);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
 
-    let outerGrad = ctx.createRadialGradient(0, 0, radius - 25, 0, 0, radius);
-    outerGrad.addColorStop(0, '#1a1a1a');
-    outerGrad.addColorStop(0.5, '#444444');
-    outerGrad.addColorStop(1, '#0a0a0a');
-    
-    ctx.beginPath();
-    ctx.arc(0, 0, radius - 2, 0, 2 * Math.PI);
-    ctx.fillStyle = outerGrad;
-    ctx.fill();
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    // ILUMINACIÓN REALISTA
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
 
-    // RUEDA GIRATORIA
-    ctx.rotate(currentAngle);
+    const mainLight = new THREE.DirectionalLight(0xfff5ea, 1.2);
+    mainLight.position.set(10, 20, 15);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
 
-    for (let i = 0; i < numSlices; i++) {
-        const angle = i * sliceAngle;
-        const num = rouletteNumbers[i];
+    const goldPointLight = new THREE.PointLight(0xffd700, 0.8, 20);
+    goldPointLight.position.set(0, 5, 0);
+    scene.add(goldPointLight);
 
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius - 30, angle, angle + sliceAngle);
-        ctx.closePath();
+    // GRUPO DE LA RUEDA 3D
+    wheelGroup = new THREE.Group();
+    scene.add(wheelGroup);
 
-        if (num === 0) ctx.fillStyle = '#008744';
-        else ctx.fillStyle = redNumbers.includes(num) ? '#d32f2f' : '#111111';
+    // BASE DE MADERA Y BISLE
+    const woodGeo = new THREE.CylinderGeometry(10, 10.5, 1.2, 64);
+    const woodMat = new THREE.MeshStandardMaterial({
+        color: 0x2b1100,
+        roughness: 0.3,
+        metalness: 0.1
+    });
+    const woodBase = new THREE.Mesh(woodGeo, woodMat);
+    woodBase.position.y = -0.6;
+    scene.add(woodBase);
 
-        ctx.fill();
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+    // ANILLO METÁLICO DORADO
+    const goldRingGeo = new THREE.TorusGeometry(8.8, 0.3, 16, 100);
+    const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xd4af37,
+        roughness: 0.1,
+        metalness: 0.9
+    });
+    const goldRing = new THREE.Mesh(goldRingGeo, goldMat);
+    goldRing.rotation.x = Math.PI / 2;
+    scene.add(goldRing);
 
-        // TEXTO DE NÚMEROS
-        ctx.save();
-        ctx.rotate(angle + sliceAngle / 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Montserrat';
-        ctx.fillText(num, radius - 55, 4);
-        ctx.restore();
-    }
+    // CENTRO CÓNICO CON CASILLEROS
+    const innerGeo = new THREE.CylinderGeometry(8.5, 2, 0.8, 37);
+    const innerMat = new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        roughness: 0.4,
+        metalness: 0.2
+    });
+    const innerWheel = new THREE.Mesh(innerGeo, innerMat);
+    wheelGroup.add(innerWheel);
 
-    // TORRETA DE LATÓN Y CENTRO DORADO
-    let centerGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 60);
-    centerGrad.addColorStop(0, '#fff2a3');
-    centerGrad.addColorStop(0.5, '#d4af37');
-    centerGrad.addColorStop(1, '#594100');
+    // TORRETA CENTRAL DORADA CON CRUZ
+    const turretGeo = new THREE.CylinderGeometry(1.5, 2.2, 2.5, 32);
+    const turret = new THREE.Mesh(turretGeo, goldMat);
+    turret.position.y = 0.8;
+    wheelGroup.add(turret);
 
-    ctx.beginPath();
-    ctx.arc(0, 0, 65, 0, 2 * Math.PI);
-    ctx.fillStyle = centerGrad;
-    ctx.fill();
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    const crossArm1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 0.6), goldMat);
+    crossArm1.position.y = 1.8;
+    wheelGroup.add(crossArm1);
 
-    // CRUZ DE LA TORRETA
-    ctx.fillStyle = '#d4af37';
-    ctx.fillRect(-45, -6, 90, 12);
-    ctx.fillRect(-6, -45, 12, 90);
-
-    ctx.restore();
+    const crossArm2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 4.5), goldMat);
+    crossArm2.position.y = 1.8;
+    wheelGroup.add(crossArm2);
 
     // BOLA DE MARFIL
-    ctx.save();
-    ctx.translate(radius, radius);
-    let ballRadius = radius - 42;
-    let ballAngle = -currentAngle * 1.5; // Gira en dirección opuesta
-    let ballX = Math.cos(ballAngle) * ballRadius;
-    let ballY = Math.sin(ballAngle) * ballRadius;
+    const ballGeo = new THREE.SphereGeometry(0.35, 32, 32);
+    const ballMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.1,
+        metalness: 0.05
+    });
+    ballMesh = new THREE.Mesh(ballGeo, ballMat);
+    ballMesh.castShadow = true;
+    ballMesh.position.set(ballRadius, 0.5, 0);
+    scene.add(ballMesh);
 
-    ctx.beginPath();
-    ctx.arc(ballX, ballY, 7, 0, 2 * Math.PI);
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = '#000';
-    ctx.shadowBlur = 5;
-    ctx.fill();
-    ctx.restore();
+    // BUCLE DE RENDERIZADO
+    function animate3D() {
+        requestAnimationFrame(animate3D);
+
+        if (isSpinning3D) {
+            // ROTACIÓN DE LA RUEDA
+            wheelGroup.rotation.y += wheelSpeed;
+            wheelSpeed *= 0.988;
+
+            // FÍSICA DE LA BOLA EN SENTIDO OPUESTO
+            ballAngle -= ballSpeed;
+            ballSpeed *= 0.985;
+
+            if (ballSpeed < 0.08 && ballRadius > 4.5) {
+                ballRadius -= 0.03; // Cae hacia el centro
+            }
+
+            ballMesh.position.x = Math.cos(ballAngle) * ballRadius;
+            ballMesh.position.z = Math.sin(ballAngle) * ballRadius;
+
+            if (wheelSpeed <= 0.001) {
+                isSpinning3D = false;
+                evaluateResults3D();
+            }
+        } else {
+            wheelGroup.rotation.y += 0.002; // Giro suave en espera
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    animate3D();
 }
 
-function spinWheel() {
-    if (isSpinning) return;
+function spinWheel3D() {
+    if (isSpinning3D) return;
     if (activeBets.length === 0) {
         alert("⚠️ Realice al menos una apuesta.");
         return;
     }
 
-    isSpinning = true;
+    isSpinning3D = true;
+    wheelSpeed = 0.35;
+    ballSpeed = 0.45;
+    ballRadius = 8.2;
+    
     const msg = document.getElementById('live-payout-message');
-    if (msg) msg.innerText = "🎲 GIRANDO RUEDA...";
-
-    let speed = 0.4;
-    function animate() {
-        if (speed > 0.002) {
-            speed *= 0.985;
-            currentAngle += speed;
-            drawWheel();
-            requestAnimationFrame(animate);
-        } else {
-            isSpinning = false;
-            evaluateResults();
-        }
-    }
-    animate();
+    if (msg) msg.innerText = "🎲 GIRANDO RUEDA 3D...";
 }
 
-function evaluateResults() {
+function evaluateResults3D() {
     const numSlices = rouletteNumbers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
-    
-    let normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
-    let winningIndex = Math.floor(normalizedAngle / sliceAngle);
+
+    let currentRotation = wheelGroup.rotation.y % (2 * Math.PI);
+    if (currentRotation < 0) currentRotation += 2 * Math.PI;
+
+    let winningIndex = Math.floor(currentRotation / sliceAngle) % numSlices;
     let winningNumber = rouletteNumbers[winningIndex];
     let isRed = redNumbers.includes(winningNumber);
     let colorStr = (winningNumber === 0) ? 'VERDE' : (isRed ? 'ROJO' : 'NEGRO');
