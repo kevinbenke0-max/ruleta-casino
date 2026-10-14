@@ -65,12 +65,20 @@ body.pokerstars-theme {
 }
 
 .wheel-container-hd {
-    width: 360px;
-    height: 360px;
+    width: 340px;
+    height: 340px;
     border-radius: 50%;
     overflow: hidden;
-    background: #000;
+    background: #111;
     border: 4px solid #d4af37;
+    position: relative;
+}
+
+/* CORRECCIÓN CLAVE PARA QUE EL CANVAS SE VEA PERFECTO */
+#wheel-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .status-banner {
