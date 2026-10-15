@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cajero - Royal Casino</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="classic-casino-theme" style="padding: 20px; justify-content: flex-start;">
+
+    <div class="casino-box" style="max-width: 450px; width: 100%;">
+        <h1 class="casino-title" style="font-size: 1.2rem;">📌 CAJERO / GESTIÓN</h1>
+        
+        <div style="margin-bottom: 20px;">
+            <h3 style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px;">Cargar / Retirar Fichas</h3>
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="target-user" placeholder="Nombre de usuario">
+            </div>
+            <div class="form-group">
+                <label>Cantidad:</label>
+                <input type="number" id="chips-amount" placeholder="Ej: 1000">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="modifyChips('ADD')" class="btn-primary" style="background:#2ecc71; color:#000;">➕ CARGAR</button>
+                <button onclick="modifyChips('REMOVE')" class="btn-primary" style="background:#e74c3c;">➖ RETIRAR</button>
+            </div>
+        </div>
+
+        <hr style="border-color: #1b4d2e; margin: 15px 0;">
+
+        <div style="margin-bottom: 15px;">
+            <h3 style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px;">Registrar Nuevo Jugador</h3>
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="new-user" placeholder="Nuevo usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="new-pass" placeholder="Contraseña">
+            </div>
+            <div class="form-group">
+                <label>Fichas iniciales:</label>
+                <input type="number" id="new-chips" value="2000">
+            </div>
+            <button onclick="createNewPlayer()" class="btn-primary">CREAR CUENTA</button>
+        </div>
+
+        <button onclick="window.location.href='index.html'" class="btn-primary" style="background:#444; margin-top: 10px;">VOLVER AL LOGIN</button>
+    </div>
+
+    <script>
+        function getUsersDB() {
+            let users = localStorage.getItem('casino_users');
+            if (!users) {
+                let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
+                localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
+                return defaultUsers;
+            }
+            return JSON.parse(users);
+        }
+
+        function saveUsersDB(users) {
+            localStorage.setItem('casino_users', JSON.stringify(users));
+        }
+
+        function modifyChips(action) {
+            let uname = document.getElementById('target-user').value.trim().toLowerCase();
+            let amount = parseInt(document.getElementById('chips-amount').value);
+            let users = getUsersDB();
+
+            if (!users[uname]) {
+                alert("❌ El usuario no existe.");
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                alert("⚠️ Ingresa una cantidad válida.");
+                return;
+            }
+
+            if (action === 'ADD') {
+                users[uname].chips += amount;
+                alert(`✅ Se cargaron $${amount} a ${uname}. Saldo actual: $${users[uname].chips}`);
+            } else {
+                if (users[uname].chips < amount) {
+                    alert("❌ El usuario no tiene tantas fichas para retirar.");
+                    return;
+                }
+                users[uname].chips -= amount;
+                alert(`✅ Se retiraron $${amount} de ${uname}. Saldo actual: $${users[uname].chips}`);
+            }
+
+            saveUsersDB(users);
+        }
+
+        function createNewPlayer() {
+            let uname = document.getElementById('new-user').value.trim().toLowerCase();
+            let upass = document.getElementById('new-pass').value.trim();
+            let uchips = parseInt(document.getElementById('new-chips').value) || 1000;
+            let users = getUsersDB();
+
+            if (!uname || !upass) {
+                alert("⚠️ Completa todos los campos.");
+                return;
+            }
+            if (users[uname]) {
+                alert("❌ El usuario ya existe.");
+                return;
+            }
+
+            users[uname] = { pass: upass, chips: uchips };
+            saveUsersDB(users);
+            alert(`🎉 ¡Jugador ${uname} creado con éxito con $${uchips} fichas!`);
+        }
+    </script>
+</body>
+</html>
