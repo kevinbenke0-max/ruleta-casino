@@ -4,16 +4,265 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Go High Fruit - Royal Casino</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: #0d0600;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+        }
+
+        .slot-cabinet {
+            width: 100%;
+            max-width: 900px;
+            background: radial-gradient(circle, #2d1300 0%, #0d0600 100%);
+            border: 3px solid #d4af37;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* BANNERS SUPERIORES DE JACKPOT */
+        .jackpots-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .jackpot-card {
+            flex: 1;
+            border-radius: 6px;
+            padding: 4px 2px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .jackpot-card.grand { background: linear-gradient(180deg, #c0392b, #641e16); border-color: #ff4d4d; }
+        .jackpot-card.major { background: linear-gradient(180deg, #8e44ad, #4a235a); border-color: #d7bde2; }
+        .jackpot-card.minor { background: linear-gradient(180deg, #2980b9, #1b4f72); border-color: #85c1e9; }
+        .jackpot-card.mini { background: linear-gradient(180deg, #27ae60, #1e8449); border-color: #82e0aa; }
+
+        .jp-title { font-size: 0.55rem; font-weight: 900; letter-spacing: 1px; }
+        .jp-value { font-size: 0.75rem; font-weight: 800; color: #fff; }
+
+        .game-logo {
+            font-weight: 900;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #ffd700;
+            line-height: 1;
+            text-shadow: 0 0 8px #d4af37;
+            padding: 0 4px;
+        }
+
+        /* MATRIZ DE RODILLOS 5x3 Y BUY FEATURE */
+        .main-reel-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .buy-feature-btn {
+            width: 75px;
+            height: 190px;
+            background: linear-gradient(180deg, #27ae60 0%, #11532c 100%);
+            border: 2px solid #2ecc71;
+            border-radius: 8px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        .buy-feature-btn:active { transform: scale(0.95); }
+        .buy-title { font-size: 0.65rem; font-weight: 900; text-align: center; line-height: 1.1; }
+        .buy-price { font-size: 0.65rem; font-weight: 800; color: #ffd700; margin-top: 8px; }
+
+        .reels-grid-5x3 {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(3, 60px);
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid #d4af37;
+        }
+
+        .symbol-tile {
+            background: linear-gradient(180deg, #1a0c02 0%, #3a1a05 100%);
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+        }
+
+        /* BOTONERA INFERIOR */
+        .bottom-control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            gap: 6px;
+        }
+
+        .btn-icon {
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .bet-control-box {
+            display: flex;
+            align-items: center;
+            background: #111;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 2px;
+        }
+
+        .btn-bet-step {
+            background: #d4af37;
+            border: none;
+            color: #000;
+            width: 24px;
+            height: 28px;
+            font-weight: 900;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .bet-display {
+            display: flex;
+            flex-direction: column;
+            padding: 0 6px;
+            text-align: center;
+        }
+        .bet-val { font-size: 0.75rem; font-weight: 800; color: #fff; }
+        .bet-label { font-size: 0.45rem; color: #888; font-weight: 700; }
+
+        .win-display-box {
+            flex: 1;
+            background: #111;
+            border: 2px solid #d4af37;
+            border-radius: 6px;
+            text-align: center;
+            padding: 3px;
+        }
+        .win-val { display: block; font-size: 0.95rem; font-weight: 900; color: #ffd700; }
+        .win-label { font-size: 0.5rem; color: #888; font-weight: 800; }
+
+        .mode-buttons-group { display: flex; gap: 3px; }
+        .btn-mode {
+            background: #222;
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-mode.active { background: #ffd700; color: #000; }
+
+        .spin-btn-main {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2ecc71, #1e8449);
+            border: 2px solid #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+        }
+        .spin-btn-main.spinning { animation: rotateSpin 0.5s linear infinite; }
+        .spin-icon { font-size: 1.2rem; }
+
+        @keyframes rotateSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* BARRA DE ESTADO Y MODAL */
+        .footer-status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: #888;
+            padding: 2px 4px;
+            background: #000;
+        }
+        .cash-text { color: #2ecc71; font-weight: 800; margin-left: 6px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-content {
+            background: #111;
+            border: 2px solid #d4af37;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 320px;
+            width: 90%;
+        }
+        .modal-content h2 { color: #ffd700; font-size: 1rem; margin-bottom: 8px; }
+        .modal-content ul { margin: 8px 0 12px 18px; font-size: 0.75rem; }
+        .btn-primary {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="slot-body">
 
-    <!-- CONTENEDOR PRINCIPAL DEL CASINO -->
     <div class="slot-cabinet">
         
-        <!-- BANNERS DE JACKPOTS (SUPERIOR) -->
+        <!-- BANNERS JACKPOTS -->
         <div class="jackpots-header">
             <div class="jackpot-card grand">
                 <span class="jp-title">GRAND</span>
@@ -34,29 +283,20 @@
             </div>
         </div>
 
-        <!-- ÁREA DE RODILLOS Y BOTÓN BUY FEATURE -->
+        <!-- RODILLOS Y BUY FEATURE -->
         <div class="main-reel-area">
-            
-            <!-- Botón Lateral Comprar Bono -->
             <button class="buy-feature-btn" onclick="buyFeature()">
                 <div class="buy-title">BUY<br>FEATURE</div>
                 <div class="buy-price" id="buy-price-text">$1,000.00</div>
             </button>
 
-            <!-- MATRIZ 5x3 DE SIMBOLOS -->
-            <div class="reels-grid-5x3" id="slot-grid">
-                <!-- Se genera dinámicamente desde JS -->
-            </div>
+            <div class="reels-grid-5x3" id="slot-grid"></div>
         </div>
 
-        <!-- BOTONERA INFERIOR PRINCIPAL -->
+        <!-- BOTONERA -->
         <div class="bottom-control-panel">
-            
-            <div class="info-group">
-                <button class="btn-icon" onclick="togglePaytable()">ℹ️</button>
-            </div>
+            <button class="btn-icon" onclick="togglePaytable()">ℹ️</button>
 
-            <!-- Selector de Apuesta -->
             <div class="bet-control-box">
                 <button class="btn-bet-step" onclick="changeBet(-5)">-</button>
                 <div class="bet-display">
@@ -66,54 +306,50 @@
                 <button class="btn-bet-step" onclick="changeBet(5)">+</button>
             </div>
 
-            <!-- Display de Ganancia Central -->
             <div class="win-display-box">
                 <span class="win-val" id="win-amount-val">$0.00</span>
                 <span class="win-label" id="win-status-label">WIN</span>
             </div>
 
-            <!-- Controles Modo de Juego -->
             <div class="mode-buttons-group">
                 <button class="btn-mode" id="btn-turbo" onclick="toggleTurbo()">TURBO</button>
                 <button class="btn-mode" id="btn-auto" onclick="toggleAuto()">AUTO</button>
             </div>
 
-            <!-- Botón Girar Principal -->
             <button class="spin-btn-main" id="btn-spin" onclick="spinSlot()">
                 <div class="spin-icon">🔄</div>
             </button>
         </div>
 
-        <!-- BARRA DE ESTADO INFERIOR -->
+        <!-- BARRA INFERIOR -->
         <footer class="footer-status-bar">
-            <div class="status-left">
-                <span>🔊</span>
-                <span>?</span>
+            <div>
+                <span>🔊 ? </span>
                 <span class="cash-text">CASH: $<span id="user-chips">0.00</span></span>
             </div>
-            <div class="status-right">
+            <div>
                 <span id="player-display">JUGADOR</span> | GO HIGH FRUIT
             </div>
         </footer>
 
     </div>
 
-    <!-- MODAL TABLA DE PREMIOS (INFO) -->
+    <!-- MODAL TABLA DE PREMIOS -->
     <div id="paytable-modal" class="modal-overlay hidden" onclick="togglePaytable()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2>📜 TABLA DE PREMIOS</h2>
-            <p><strong>Líneas de pago:</strong> Combinaciones de 3, 4 o 5 símbolos iguales de izquierda a derecha.</p>
+            <p style="font-size: 0.7rem; margin-bottom: 6px;">Líneas de pago de izquierda a derecha (3, 4 o 5 símbolos):</p>
             <ul>
-                <li>🍉 Sandía: 5x | 4x | 2x</li>
-                <li>🍊 Naranja / 🍒 Cereza / 🍇 Frambuesa: 4x | 3x | 1.5x</li>
-                <li>🅰️ / 🅺 / 🆀 / 🅹: 2x | 1.5x | 0.5x</li>
+                <li>🍉 Sandía: 5x | 3x | 1.5x</li>
+                <li>🍊 Naranja / 🍒 Cereza: 4x | 2.5x | 1.2x</li>
+                <li>🍇 Frambuesa: 3.5x | 2x | 1x</li>
+                <li>🅰️ / 🅺 / 🆀 / 🅹: 2.5x | 1.2x | 0.5x</li>
             </ul>
             <button class="btn-primary" onclick="togglePaytable()">CERRAR</button>
         </div>
     </div>
 
     <script>
-        // SONIDOS
         const sounds = {
             spin: new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
@@ -125,7 +361,6 @@
             }
         }
 
-        // SISTEMA DE USUARIO Y CAJERO
         function getUsersDB() {
             let users = localStorage.getItem('casino_users');
             if (!users) {
@@ -151,7 +386,6 @@
         let isSpinning = false;
         let isTurbo = false;
         let isAuto = false;
-        let autoInterval = null;
 
         const SYMBOLS = ['🍉', '🍊', '🍒', '🍇', '🅰️', '🅺', '🆀', '🅹'];
         const PAYOUTS = {
@@ -159,10 +393,10 @@
             '🍊': { 5: 4, 4: 2.5, 3: 1.2 },
             '🍒': { 5: 4, 4: 2.5, 3: 1.2 },
             '🍇': { 5: 3.5, 4: 2, 3: 1 },
-            '🅰️': { 5: 2.5, 4: 1.5, 3: 0.8 },
-            '🅺': { 5: 2, 4: 1.2, 3: 0.5 },
-            '🆀': { 5: 1.5, 4: 1, 3: 0.4 },
-            '🅹': { 5: 1.2, 4: 0.8, 3: 0.3 }
+            '🅰️': { 5: 2.5, 4: 1.2, 3: 0.5 },
+            '🅺': { 5: 2, 4: 1, 3: 0.4 },
+            '🆀': { 5: 1.5, 4: 0.8, 3: 0.3 },
+            '🅹': { 5: 1.2, 4: 0.6, 3: 0.2 }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -184,7 +418,6 @@
             saveUserChips();
         }
 
-        // DIBUJAR MATRIZ INICIAL 5x3
         function initGrid() {
             const grid = document.getElementById('slot-grid');
             grid.innerHTML = '';
@@ -224,21 +457,20 @@
         function buyFeature() {
             let cost = currentBet * 50;
             if (currentChips < cost) {
-                alert("❌ No tienes suficiente saldo para comprar la función de Bono.");
+                alert("❌ No tienes suficiente saldo.");
                 return;
             }
-            if (confirm(`¿Deseas comprar la función especial por $${cost.toFixed(2)}?`)) {
+            if (confirm(`¿Comprar función especial por $${cost.toFixed(2)}?`)) {
                 currentChips -= cost;
                 updateChipsDisplay();
-                spinSlot(true); // Giro garantizado de premio alto
+                spinSlot(true);
             }
         }
 
-        // GIRO DE 5 RODILLOS
         function spinSlot(isBonus = false) {
             if (isSpinning) return;
             if (currentChips < currentBet && !isBonus) {
-                alert("❌ Fichas insuficientes. Carga saldo en el cajero.");
+                alert("❌ Fichas insuficientes.");
                 if (isAuto) toggleAuto();
                 return;
             }
@@ -254,8 +486,8 @@
             document.getElementById('win-status-label').innerText = "SPINNING...";
             document.getElementById('win-amount-val').innerText = "$0.00";
 
-            let spinSpeed = isTurbo ? 40 : 70;
-            let spinDuration = isTurbo ? 10 : 20;
+            let spinSpeed = isTurbo ? 35 : 65;
+            let spinDuration = isTurbo ? 8 : 16;
             let counter = 0;
 
             let interval = setInterval(() => {
@@ -266,8 +498,6 @@
 
                 if (counter > spinDuration) {
                     clearInterval(interval);
-                    
-                    // Generar resultados finales
                     let finalResults = [];
                     for (let i = 0; i < 15; i++) {
                         let sym = isBonus 
@@ -276,20 +506,17 @@
                         finalResults.push(sym);
                         document.getElementById(`tile-${i}`).innerText = sym;
                     }
-
                     evaluate5x3(finalResults);
                 }
             }, spinSpeed);
         }
 
-        // EVALUACIÓN DE LÍNEAS EN MATRIZ 5x3
         function evaluate5x3(results) {
             isSpinning = false;
             document.getElementById('btn-spin').classList.remove('spinning');
 
             let totalWinMultiplier = 0;
 
-            // Evaluar filas horizontales (Fila 0, 1 y 2)
             for (let row = 0; row < 3; row++) {
                 let rowSymbols = [
                     results[row * 5],
@@ -317,23 +544,4 @@
             if (winAmount > 0) {
                 currentChips += winAmount;
                 updateChipsDisplay();
-                playSound('win');
-
-                document.getElementById('win-amount-val').innerText = `$${winAmount.toFixed(2)}`;
-                document.getElementById('win-status-label').innerText = "WIN";
-
-                if (totalWinMultiplier >= 10) {
-                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-                }
-            } else {
-                document.getElementById('win-status-label').innerText = "NO WIN";
-            }
-
-            // Continuar en modo AUTO
-            if (isAuto) {
-                setTimeout(() => { if (isAuto) spinSlot(); }, isTurbo ? 600 : 1200);
-            }
-        }
-    </script>
-</body>
-</html>
+                playSound('
