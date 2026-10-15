@@ -3,71 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Royal Casino - Tragamonedas 777</title>
+    <title>Go High Fruit - Royal Casino</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
-<body class="classic-casino-theme">
+<body class="slot-body">
 
-    <!-- BARRA SUPERIOR -->
-    <header class="top-bar">
-        <div class="brand">
-            <span class="star-icon">★</span>
-            <span class="brand-title">ROYAL CASINO</span>
+    <!-- CONTENEDOR PRINCIPAL DEL CASINO -->
+    <div class="slot-cabinet">
+        
+        <!-- BANNERS DE JACKPOTS (SUPERIOR) -->
+        <div class="jackpots-header">
+            <div class="jackpot-card grand">
+                <span class="jp-title">GRAND</span>
+                <span class="jp-value">$20,000.00</span>
+            </div>
+            <div class="jackpot-card major">
+                <span class="jp-title">MAJOR</span>
+                <span class="jp-value">$4,000.00</span>
+            </div>
+            <div class="game-logo">GO HIGH<br><span>FRUIT</span></div>
+            <div class="jackpot-card minor">
+                <span class="jp-title">MINOR</span>
+                <span class="jp-value">$800.00</span>
+            </div>
+            <div class="jackpot-card mini">
+                <span class="jp-title">MINI</span>
+                <span class="jp-value">$400.00</span>
+            </div>
         </div>
-        <div class="user-stats">
-            <div class="stat-box">
-                <span class="stat-label">JUGADOR</span>
-                <span id="player-display" class="stat-val">-</span>
+
+        <!-- ÁREA DE RODILLOS Y BOTÓN BUY FEATURE -->
+        <div class="main-reel-area">
+            
+            <!-- Botón Lateral Comprar Bono -->
+            <button class="buy-feature-btn" onclick="buyFeature()">
+                <div class="buy-title">BUY<br>FEATURE</div>
+                <div class="buy-price" id="buy-price-text">$1,000.00</div>
+            </button>
+
+            <!-- MATRIZ 5x3 DE SIMBOLOS -->
+            <div class="reels-grid-5x3" id="slot-grid">
+                <!-- Se genera dinámicamente desde JS -->
             </div>
-            <div class="stat-box">
-                <span class="stat-label">SALDO</span>
-                <span class="stat-val">$<span id="user-chips">0</span></span>
-            </div>
-            <button onclick="logout()" class="btn-exit">SALIR</button>
         </div>
-    </header>
 
-    <main class="casino-table-container" style="justify-content: center;">
-        <div class="slot-machine-container">
-            <div class="slot-header">🎰 JACKPOT 777 🎰</div>
-
-            <!-- MÁQUINA CON LÍNEA DE PREMIO CENTRAL -->
-            <div class="reels-frame">
-                <div class="payline-indicator"></div>
-                <div id="reel-1" class="reel">🍒</div>
-                <div id="reel-2" class="reel">🍋</div>
-                <div id="reel-3" class="reel">🔔</div>
+        <!-- BOTONERA INFERIOR PRINCIPAL -->
+        <div class="bottom-control-panel">
+            
+            <div class="info-group">
+                <button class="btn-icon" onclick="togglePaytable()">ℹ️</button>
             </div>
 
-            <div id="live-payout-message" class="status-banner" style="margin-top: 15px; text-align:center;">
-                ¡SELECCIONA TU APUESTA Y GIRA!
-            </div>
-
-            <!-- CONTROLES DE APUESTA Y GIRO -->
-            <div class="slot-controls">
-                <div class="bet-selector">
-                    <button onclick="changeSlotBet(-10)" class="bet-btn">-</button>
-                    <span style="font-size: 0.85rem; font-weight:800;">$<span id="slot-bet-amount">50</span></span>
-                    <button onclick="changeSlotBet(10)" class="bet-btn">+</button>
+            <!-- Selector de Apuesta -->
+            <div class="bet-control-box">
+                <button class="btn-bet-step" onclick="changeBet(-5)">-</button>
+                <div class="bet-display">
+                    <span class="bet-val" id="total-bet-val">$20.00</span>
+                    <span class="bet-label">TOTAL BET</span>
                 </div>
-                <button id="btn-spin" onclick="spinSlot()" class="btn-spin-slot">GIRAR 🎲</button>
+                <button class="btn-bet-step" onclick="changeBet(5)">+</button>
             </div>
 
-            <!-- TABLA DE PREMIOS -->
-            <div class="paytable-box">
-                <div class="paytable-item">3x 7️⃣ ➔ <span>50x</span></div>
-                <div class="paytable-item">3x 💎 ➔ <span>25x</span></div>
-                <div class="paytable-item">3x 🔔 ➔ <span>10x</span></div>
-                <div class="paytable-item">3x 🍉 / 🍋 ➔ <span>5x</span></div>
-                <div class="paytable-item">3x 🍒 ➔ <span>3x</span></div>
-                <div class="paytable-item">2x CUALQUIERA ➔ <span>1.5x</span></div>
+            <!-- Display de Ganancia Central -->
+            <div class="win-display-box">
+                <span class="win-val" id="win-amount-val">$0.00</span>
+                <span class="win-label" id="win-status-label">WIN</span>
             </div>
+
+            <!-- Controles Modo de Juego -->
+            <div class="mode-buttons-group">
+                <button class="btn-mode" id="btn-turbo" onclick="toggleTurbo()">TURBO</button>
+                <button class="btn-mode" id="btn-auto" onclick="toggleAuto()">AUTO</button>
+            </div>
+
+            <!-- Botón Girar Principal -->
+            <button class="spin-btn-main" id="btn-spin" onclick="spinSlot()">
+                <div class="spin-icon">🔄</div>
+            </button>
         </div>
-    </main>
+
+        <!-- BARRA DE ESTADO INFERIOR -->
+        <footer class="footer-status-bar">
+            <div class="status-left">
+                <span>🔊</span>
+                <span>?</span>
+                <span class="cash-text">CASH: $<span id="user-chips">0.00</span></span>
+            </div>
+            <div class="status-right">
+                <span id="player-display">JUGADOR</span> | GO HIGH FRUIT
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL TABLA DE PREMIOS (INFO) -->
+    <div id="paytable-modal" class="modal-overlay hidden" onclick="togglePaytable()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>📜 TABLA DE PREMIOS</h2>
+            <p><strong>Líneas de pago:</strong> Combinaciones de 3, 4 o 5 símbolos iguales de izquierda a derecha.</p>
+            <ul>
+                <li>🍉 Sandía: 5x | 4x | 2x</li>
+                <li>🍊 Naranja / 🍒 Cereza / 🍇 Frambuesa: 4x | 3x | 1.5x</li>
+                <li>🅰️ / 🅺 / 🆀 / 🅹: 2x | 1.5x | 0.5x</li>
+            </ul>
+            <button class="btn-primary" onclick="togglePaytable()">CERRAR</button>
+        </div>
+    </div>
 
     <script>
-        // SONIDOS MP3
+        // SONIDOS
         const sounds = {
             spin: new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
@@ -79,7 +125,7 @@
             }
         }
 
-        // GESTIÓN DE USUARIOS Y CAJERO
+        // SISTEMA DE USUARIO Y CAJERO
         function getUsersDB() {
             let users = localStorage.getItem('casino_users');
             if (!users) {
@@ -101,113 +147,191 @@
 
         let currentUser = sessionStorage.getItem('active_user') || null;
         let currentChips = 0;
+        let currentBet = 20;
+        let isSpinning = false;
+        let isTurbo = false;
+        let isAuto = false;
+        let autoInterval = null;
+
+        const SYMBOLS = ['🍉', '🍊', '🍒', '🍇', '🅰️', '🅺', '🆀', '🅹'];
+        const PAYOUTS = {
+            '🍉': { 5: 5, 4: 3, 3: 1.5 },
+            '🍊': { 5: 4, 4: 2.5, 3: 1.2 },
+            '🍒': { 5: 4, 4: 2.5, 3: 1.2 },
+            '🍇': { 5: 3.5, 4: 2, 3: 1 },
+            '🅰️': { 5: 2.5, 4: 1.5, 3: 0.8 },
+            '🅺': { 5: 2, 4: 1.2, 3: 0.5 },
+            '🆀': { 5: 1.5, 4: 1, 3: 0.4 },
+            '🅹': { 5: 1.2, 4: 0.8, 3: 0.3 }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 let users = getUsersDB();
                 if (users[currentUser]) {
                     currentChips = users[currentUser].chips;
-                    const disp = document.getElementById('player-display');
-                    if (disp) disp.innerText = currentUser;
+                    document.getElementById('player-display').innerText = currentUser.toUpperCase();
                     updateChipsDisplay();
-                } else {
-                    window.location.href = "index.html";
-                }
-            } else {
-                window.location.href = "index.html";
-            }
+                } else { window.location.href = "index.html"; }
+            } else { window.location.href = "index.html"; }
+
+            initGrid();
         });
 
-        function logout() {
-            sessionStorage.removeItem('active_user');
-            window.location.href = "index.html";
-        }
-
         function updateChipsDisplay() {
-            const chipsEl = document.getElementById('user-chips');
-            if (chipsEl) chipsEl.innerText = currentChips.toLocaleString();
+            document.getElementById('user-chips').innerText = currentChips.toFixed(2);
+            document.getElementById('buy-price-text').innerText = `$${(currentBet * 50).toFixed(2)}`;
             saveUserChips();
         }
 
-        // LÓGICA DE LOS RODILLOS
-        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '💎', '7️⃣'];
-        const PAYTABLE = { '7️⃣': 50, '💎': 25, '🔔': 10, '🍉': 5, '🍋': 5, '🍒': 3 };
-
-        let slotBetAmount = 50;
-        let isSlotSpinning = false;
-
-        function changeSlotBet(delta) {
-            if (isSlotSpinning) return;
-            if (slotBetAmount + delta >= 10 && slotBetAmount + delta <= 1000) {
-                slotBetAmount += delta;
-                document.getElementById('slot-bet-amount').innerText = slotBetAmount;
+        // DIBUJAR MATRIZ INICIAL 5x3
+        function initGrid() {
+            const grid = document.getElementById('slot-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                let tile = document.createElement('div');
+                tile.className = 'symbol-tile';
+                tile.id = `tile-${i}`;
+                tile.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                grid.appendChild(tile);
             }
         }
 
-        function spinSlot() {
-            if (isSlotSpinning) return;
-            if (currentChips < slotBetAmount) {
-                alert("❌ ¡No tienes suficientes fichas! Pide saldo al cajero.");
+        function changeBet(delta) {
+            if (isSpinning) return;
+            if (currentBet + delta >= 5 && currentBet + delta <= 500) {
+                currentBet += delta;
+                document.getElementById('total-bet-val').innerText = `$${currentBet.toFixed(2)}`;
+                updateChipsDisplay();
+            }
+        }
+
+        function toggleTurbo() {
+            isTurbo = !isTurbo;
+            document.getElementById('btn-turbo').classList.toggle('active', isTurbo);
+        }
+
+        function toggleAuto() {
+            isAuto = !isAuto;
+            document.getElementById('btn-auto').classList.toggle('active', isAuto);
+            if (isAuto && !isSpinning) spinSlot();
+        }
+
+        function togglePaytable() {
+            document.getElementById('paytable-modal').classList.toggle('hidden');
+        }
+
+        function buyFeature() {
+            let cost = currentBet * 50;
+            if (currentChips < cost) {
+                alert("❌ No tienes suficiente saldo para comprar la función de Bono.");
+                return;
+            }
+            if (confirm(`¿Deseas comprar la función especial por $${cost.toFixed(2)}?`)) {
+                currentChips -= cost;
+                updateChipsDisplay();
+                spinSlot(true); // Giro garantizado de premio alto
+            }
+        }
+
+        // GIRO DE 5 RODILLOS
+        function spinSlot(isBonus = false) {
+            if (isSpinning) return;
+            if (currentChips < currentBet && !isBonus) {
+                alert("❌ Fichas insuficientes. Carga saldo en el cajero.");
+                if (isAuto) toggleAuto();
                 return;
             }
 
-            currentChips -= slotBetAmount;
-            updateChipsDisplay();
-            playSound('spin');
-
-            isSlotSpinning = true;
-            document.getElementById('btn-spin').disabled = true;
-            const msg = document.getElementById('live-payout-message');
-            msg.innerText = "🎰 GIRANDO RODILLOS...";
-
-            const r1 = document.getElementById('reel-1');
-            const r2 = document.getElementById('reel-2');
-            const r3 = document.getElementById('reel-3');
-
-            // Probabilidad realista de casino
-            const res1 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-            const res2 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-            const res3 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-
-            let counter = 0;
-            const interval = setInterval(() => {
-                r1.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                r2.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                r3.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-                counter++;
-
-                if (counter > 18) {
-                    clearInterval(interval);
-                    r1.innerText = res1;
-                    setTimeout(() => { r2.innerText = res2; }, 250);
-                    setTimeout(() => { 
-                        r3.innerText = res3; 
-                        evaluateSlotResult(res1, res2, res3);
-                    }, 500);
-                }
-            }, 70);
-        }
-
-        function evaluateSlotResult(s1, s2, s3) {
-            isSlotSpinning = false;
-            document.getElementById('btn-spin').disabled = false;
-
-            let multiplier = 0;
-            if (s1 === s2 && s2 === s3) {
-                multiplier = PAYTABLE[s1] || 2;
-            } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                multiplier = 1.5;
+            if (!isBonus) {
+                currentChips -= currentBet;
+                updateChipsDisplay();
             }
 
-            const msg = document.getElementById('live-payout-message');
-            if (multiplier > 0) {
-                let winAmount = Math.floor(slotBetAmount * multiplier);
+            isSpinning = true;
+            playSound('spin');
+            document.getElementById('btn-spin').classList.add('spinning');
+            document.getElementById('win-status-label').innerText = "SPINNING...";
+            document.getElementById('win-amount-val').innerText = "$0.00";
+
+            let spinSpeed = isTurbo ? 40 : 70;
+            let spinDuration = isTurbo ? 10 : 20;
+            let counter = 0;
+
+            let interval = setInterval(() => {
+                for (let i = 0; i < 15; i++) {
+                    document.getElementById(`tile-${i}`).innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                }
+                counter++;
+
+                if (counter > spinDuration) {
+                    clearInterval(interval);
+                    
+                    // Generar resultados finales
+                    let finalResults = [];
+                    for (let i = 0; i < 15; i++) {
+                        let sym = isBonus 
+                            ? (Math.random() > 0.4 ? '🍉' : SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)])
+                            : SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                        finalResults.push(sym);
+                        document.getElementById(`tile-${i}`).innerText = sym;
+                    }
+
+                    evaluate5x3(finalResults);
+                }
+            }, spinSpeed);
+        }
+
+        // EVALUACIÓN DE LÍNEAS EN MATRIZ 5x3
+        function evaluate5x3(results) {
+            isSpinning = false;
+            document.getElementById('btn-spin').classList.remove('spinning');
+
+            let totalWinMultiplier = 0;
+
+            // Evaluar filas horizontales (Fila 0, 1 y 2)
+            for (let row = 0; row < 3; row++) {
+                let rowSymbols = [
+                    results[row * 5],
+                    results[row * 5 + 1],
+                    results[row * 5 + 2],
+                    results[row * 5 + 3],
+                    results[row * 5 + 4]
+                ];
+
+                let firstSym = rowSymbols[0];
+                let matchCount = 1;
+
+                for (let c = 1; c < 5; c++) {
+                    if (rowSymbols[c] === firstSym) matchCount++;
+                    else break;
+                }
+
+                if (matchCount >= 3 && PAYOUTS[firstSym] && PAYOUTS[firstSym][matchCount]) {
+                    totalWinMultiplier += PAYOUTS[firstSym][matchCount];
+                }
+            }
+
+            let winAmount = currentBet * totalWinMultiplier;
+
+            if (winAmount > 0) {
                 currentChips += winAmount;
                 updateChipsDisplay();
                 playSound('win');
-                msg.innerText = `🎉 ¡JACKPOT! GANASTE +$${winAmount.toLocaleString()} (${multiplier}x)`;
+
+                document.getElementById('win-amount-val').innerText = `$${winAmount.toFixed(2)}`;
+                document.getElementById('win-status-label').innerText = "WIN";
+
+                if (totalWinMultiplier >= 10) {
+                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+                }
             } else {
-                msg.innerText = "❌ SIN PREMIO. ¡SIGUE INTENTANDO!";
+                document.getElementById('win-status-label').innerText = "NO WIN";
+            }
+
+            // Continuar en modo AUTO
+            if (isAuto) {
+                setTimeout(() => { if (isAuto) spinSlot(); }, isTurbo ? 600 : 1200);
             }
         }
     </script>
