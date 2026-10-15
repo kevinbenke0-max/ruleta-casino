@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Casino - Tragamonedas 777</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="classic-casino-theme">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="top-bar">
+        <div class="brand">
+            <span class="star-icon">★</span>
+            <span class="brand-title">ROYAL CASINO</span>
+        </div>
+        <div class="user-stats">
+            <div class="stat-box">
+                <span class="stat-label">JUGADOR</span>
+                <span id="player-display" class="stat-val">-</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">SALDO</span>
+                <span class="stat-val">$<span id="user-chips">0</span></span>
+            </div>
+            <button onclick="logout()" class="btn-exit">SALIR</button>
+        </div>
+    </header>
+
+    <main class="casino-table-container" style="justify-content: center;">
+        <div class="slot-machine-container">
+            <div class="slot-header">🎰 JACKPOT 777 🎰</div>
+
+            <!-- MÁQUINA CON LÍNEA DE PREMIO CENTRAL -->
+            <div class="reels-frame">
+                <div class="payline-indicator"></div>
+                <div id="reel-1" class="reel">🍒</div>
+                <div id="reel-2" class="reel">🍋</div>
+                <div id="reel-3" class="reel">🔔</div>
+            </div>
+
+            <div id="live-payout-message" class="status-banner" style="margin-top: 15px; text-align:center;">
+                ¡SELECCIONA TU APUESTA Y GIRA!
+            </div>
+
+            <!-- CONTROLES DE APUESTA Y GIRO -->
+            <div class="slot-controls">
+                <div class="bet-selector">
+                    <button onclick="changeSlotBet(-10)" class="bet-btn">-</button>
+                    <span style="font-size: 0.85rem; font-weight:800;">$<span id="slot-bet-amount">50</span></span>
+                    <button onclick="changeSlotBet(10)" class="bet-btn">+</button>
+                </div>
+                <button id="btn-spin" onclick="spinSlot()" class="btn-spin-slot">GIRAR 🎲</button>
+            </div>
+
+            <!-- TABLA DE PREMIOS -->
+            <div class="paytable-box">
+                <div class="paytable-item">3x 7️⃣ ➔ <span>50x</span></div>
+                <div class="paytable-item">3x 💎 ➔ <span>25x</span></div>
+                <div class="paytable-item">3x 🔔 ➔ <span>10x</span></div>
+                <div class="paytable-item">3x 🍉 / 🍋 ➔ <span>5x</span></div>
+                <div class="paytable-item">3x 🍒 ➔ <span>3x</span></div>
+                <div class="paytable-item">2x CUALQUIERA ➔ <span>1.5x</span></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // SONIDOS MP3
+        const sounds = {
+            spin: new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3'),
+            win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+        };
+        function playSound(type) {
+            if (sounds[type]) {
+                sounds[type].currentTime = 0;
+                sounds[type].play().catch(() => {});
+            }
+        }
+
+        // GESTIÓN DE USUARIOS Y CAJERO
+        function getUsersDB() {
+            let users = localStorage.getItem('casino_users');
+            if (!users) {
+                let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
+                localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
+                return defaultUsers;
+            }
+            return JSON.parse(users);
+        }
+
+        function saveUserChips() {
+            if (!currentUser) return;
+            let users = getUsersDB();
+            if (users[currentUser]) {
+                users[currentUser].chips = currentChips;
+                localStorage.setItem('casino_users', JSON.stringify(users));
+            }
+        }
+
+        let currentUser = sessionStorage.getItem('active_user') || null;
+        let currentChips = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                let users = getUsersDB();
+                if (users[currentUser]) {
+                    currentChips = users[currentUser].chips;
+                    const disp = document.getElementById('player-display');
+                    if (disp) disp.innerText = currentUser;
+                    updateChipsDisplay();
+                } else {
+                    window.location.href = "index.html";
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('active_user');
+            window.location.href = "index.html";
+        }
+
+        function updateChipsDisplay() {
+            const chipsEl = document.getElementById('user-chips');
+            if (chipsEl) chipsEl.innerText = currentChips.toLocaleString();
+            saveUserChips();
+        }
+
+        // LÓGICA DE LOS RODILLOS
+        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '💎', '7️⃣'];
+        const PAYTABLE = { '7️⃣': 50, '💎': 25, '🔔': 10, '🍉': 5, '🍋': 5, '🍒': 3 };
+
+        let slotBetAmount = 50;
+        let isSlotSpinning = false;
+
+        function changeSlotBet(delta) {
+            if (isSlotSpinning) return;
+            if (slotBetAmount + delta >= 10 && slotBetAmount + delta <= 1000) {
+                slotBetAmount += delta;
+                document.getElementById('slot-bet-amount').innerText = slotBetAmount;
+            }
+        }
+
+        function spinSlot() {
+            if (isSlotSpinning) return;
+            if (currentChips < slotBetAmount) {
+                alert("❌ ¡No tienes suficientes fichas! Pide saldo al cajero.");
+                return;
+            }
+
+            currentChips -= slotBetAmount;
+            updateChipsDisplay();
+            playSound('spin');
+
+            isSlotSpinning = true;
+            document.getElementById('btn-spin').disabled = true;
+            const msg = document.getElementById('live-payout-message');
+            msg.innerText = "🎰 GIRANDO RODILLOS...";
+
+            const r1 = document.getElementById('reel-1');
+            const r2 = document.getElementById('reel-2');
+            const r3 = document.getElementById('reel-3');
+
+            // Probabilidad realista de casino
+            const res1 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            const res2 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            const res3 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+
+            let counter = 0;
+            const interval = setInterval(() => {
+                r1.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                r2.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                r3.innerText = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+                counter++;
+
+                if (counter > 18) {
+                    clearInterval(interval);
+                    r1.innerText = res1;
+                    setTimeout(() => { r2.innerText = res2; }, 250);
+                    setTimeout(() => { 
+                        r3.innerText = res3; 
+                        evaluateSlotResult(res1, res2, res3);
+                    }, 500);
+                }
+            }, 70);
+        }
+
+        function evaluateSlotResult(s1, s2, s3) {
+            isSlotSpinning = false;
+            document.getElementById('btn-spin').disabled = false;
+
+            let multiplier = 0;
+            if (s1 === s2 && s2 === s3) {
+                multiplier = PAYTABLE[s1] || 2;
+            } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+                multiplier = 1.5;
+            }
+
+            const msg = document.getElementById('live-payout-message');
+            if (multiplier > 0) {
+                let winAmount = Math.floor(slotBetAmount * multiplier);
+                currentChips += winAmount;
+                updateChipsDisplay();
+                playSound('win');
+                msg.innerText = `🎉 ¡JACKPOT! GANASTE +$${winAmount.toLocaleString()} (${multiplier}x)`;
+            } else {
+                msg.innerText = "❌ SIN PREMIO. ¡SIGUE INTENTANDO!";
+            }
+        }
+    </script>
+</body>
+</html>
