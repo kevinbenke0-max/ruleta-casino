@@ -7,22 +7,22 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="classic-casino-theme" style="justify-content: center; align-items: center;">
+<body class="classic-casino-theme" style="justify-content: center; align-items: center; min-height: 100vh; display: flex;">
 
-    <div class="casino-box">
-        <h1 class="casino-title">🎰 ROYAL CASINO</h1>
-        <p class="casino-subtitle">Ingrese sus credenciales para jugar</p>
+    <div class="casino-box" style="background: #0d2116; border: 3px solid #d4af37; border-radius: 10px; padding: 25px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+        <h1 class="casino-title" style="color: #ffd700; font-size: 1.3rem; font-weight: 800; text-align: center; margin-bottom: 5px;">🎰 ROYAL CASINO</h1>
+        <p class="casino-subtitle" style="color: #8fa896; font-size: 0.75rem; text-align: center; margin-bottom: 20px;">Ingrese sus credenciales para jugar</p>
 
         <form id="login-form" class="casino-form">
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="username" placeholder="Ej: admin" required>
+            <div class="form-group" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.75rem; color: #8fa896; font-weight: 700;">Usuario</label>
+                <input type="text" id="username" placeholder="Ej: Camysch" required style="padding: 10px; border-radius: 4px; border: 1px solid #1b4d2e; background: #03180c; color: #fff; width: 100%;">
             </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="password" placeholder="Contraseña (1234)" required>
+            <div class="form-group" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.75rem; color: #8fa896; font-weight: 700;">Contraseña</label>
+                <input type="password" id="password" placeholder="Contraseña" required style="padding: 10px; border-radius: 4px; border: 1px solid #1b4d2e; background: #03180c; color: #fff; width: 100%;">
             </div>
-            <button type="submit" class="btn-primary">ENTRAR AL CASINO</button>
+            <button type="submit" class="btn-primary" style="background: linear-gradient(180deg, #ffd700 0%, #d4af37 100%); color: #000; border: none; padding: 10px; border-radius: 4px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px;">ENTRAR AL CASINO</button>
         </form>
 
         <div style="margin-top: 15px; text-align: center;">
@@ -31,29 +31,27 @@
     </div>
 
     <script>
-        function getUsersDB() {
-            let users = localStorage.getItem('casino_users');
-            if (!users) {
-                let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
-                localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
-                return defaultUsers;
-            }
-            return JSON.parse(users);
-        }
-
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const inputUser = document.getElementById('username').value.trim().toLowerCase();
+            const inputUser = document.getElementById('username').value.trim();
             const inputPass = document.getElementById('password').value.trim();
-            let users = getUsersDB();
+            
+            let usersData = localStorage.getItem('casino_users');
+            if (!usersData) {
+                alert("❌ No hay usuarios registrados. Vaya al Cajero a crear uno.");
+                return;
+            }
 
-            let matchedUserKey = Object.keys(users).find(key => key.toLowerCase() === inputUser);
+            let users = JSON.parse(usersData);
 
-            if (matchedUserKey && String(users[matchedUserKey].pass) === String(inputPass)) {
-                sessionStorage.setItem('active_user', matchedUserKey);
+            // Buscar el usuario sin importar si escribiste mayúsculas o minúsculas
+            let foundKey = Object.keys(users).find(k => k.toLowerCase() === inputUser.toLowerCase());
+
+            if (foundKey && String(users[foundKey].pass) === String(inputPass)) {
+                sessionStorage.setItem('active_user', foundKey);
                 window.location.href = "tragamonedas.html";
             } else {
-                alert("❌ Usuario o contraseña incorrectos. (Pruebe admin / 1234)");
+                alert("❌ Contraseña incorrecta o usuario no encontrado.");
             }
         });
     </script>
