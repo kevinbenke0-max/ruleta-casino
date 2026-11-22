@@ -13,7 +13,7 @@
         <div class="casino-header">
             <span class="casino-badge">CASINO ONLINE EN VIVO</span>
             <h1 class="casino-title">🎰 ROYAL CASINO</h1>
-            <p class="casino-subtitle">Ingresá con tu cuenta para empezar a jugar</p>
+            <p class="casino-subtitle">Ingresá con tu cuenta para entrar a la sala VIP</p>
         </div>
 
         <div id="login-error" class="inline-error"></div>
@@ -97,7 +97,7 @@
                 const snap = await get(ref(db, `users/${cleanUser}`));
                 if (snap.exists() && String(snap.val().pass) === String(inputPass)) {
                     sessionStorage.setItem("active_user", cleanUser);
-                    window.location.href = "tragamonedas.html";
+                    window.location.href = "lobby.html";
                 } else {
                     showError("❌ Usuario o contraseña incorrectos.");
                 }
