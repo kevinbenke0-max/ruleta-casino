@@ -7,6 +7,38 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        .btn-wheel-spin {
+            background: linear-gradient(180deg, #2ecc71 0%, #157339 100%);
+            border: 2px solid #c9ffe0;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            padding: 10px 14px;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(46, 204, 113, 0.55);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-wheel-spin:active { transform: scale(0.95); }
+        .btn-wheel-spin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .spin-button-hero:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
 </head>
 <body class="roulette-body">
 
@@ -34,7 +66,7 @@
             <span style="font-size: 0.7rem; color: #7e9b8a;">Esperando primer giro...</span>
         </div>
 
-        <!-- RUEDA EUROPEA 3D -->
+        <!-- RUEDA EUROPEA 3D + BOTÓN GIRAR VISIBLE -->
         <section class="wheel-stage-3d">
             <div class="wheel-tilt-wrap" id="wheel-tilt-wrap">
                 <canvas id="roulette-canvas"></canvas>
@@ -45,6 +77,9 @@
                     <span id="status-text" style="color: #b7cdbf;">Hacé tus apuestas</span>
                     <span class="result-num-badge" id="last-result-badge">—</span>
                 </div>
+                <button type="button" class="btn-wheel-spin" id="btn-spin-top">
+                    GIRAR 🎡
+                </button>
             </div>
         </section>
 
@@ -61,7 +96,7 @@
         <section class="felt-table" id="felt-table">
             <div class="felt-cell zero" data-bet="num_0">0</div>
 
-            <!-- 1 al 36 (6 columnas para tocar cómodo en el celular) -->
+            <!-- 1 al 36 -->
             <div class="numbers-grid-3col" id="numbers-grid"></div>
 
             <!-- Columnas 2:1 -->
@@ -89,7 +124,7 @@
             </div>
         </section>
 
-        <!-- BOTONERA DE CONTROL -->
+        <!-- BOTONERA DE CONTROL INFERIOR -->
         <section class="roulette-controls-deck">
             <div class="roulette-meta-row">
                 <span>APUESTA TOTAL: <strong id="total-bet-txt">$0.00</strong></span>
@@ -115,7 +150,7 @@
         <div class="modal-card" id="rules-modal-card">
             <h2>📜 PAGOS RULETA EUROPEA</h2>
             <p class="modal-note">
-                Elegí una ficha, tocá los números o zonas del paño para apostar y presioná <strong>GIRAR RULETA</strong>.
+                Elegí una ficha, tocá los números o zonas del paño para apostar y presioná <strong>GIRAR</strong>.
             </p>
             <ul class="payout-list">
                 <li><span>🎯 <strong>Pleno (0 al 36)</strong></span><span>35 a 1 (x36)</span></li>
@@ -175,7 +210,6 @@
             let is3DView = true;
             let recentNumbers = [];
 
-            // Estado visual de la rueda 3D
             let wheelAngle = 0;
             let ballAngle = -Math.PI / 2;
             let ballRadiusRatio = 0.84;
@@ -204,7 +238,6 @@
                 setTimeout(() => toast.remove(), 2600);
             }
 
-            // Audio sintetizado con Web Audio API (sin enlaces externos que fallen)
             function ensureAudio() {
                 if (!soundEnabled) return null;
                 if (!audioCtx) {
@@ -255,7 +288,6 @@
                 });
             }
 
-            // Construye el tablero 1 al 36
             function buildNumbersGrid() {
                 const grid = document.getElementById("numbers-grid");
                 grid.innerHTML = "";
@@ -274,7 +306,6 @@
                 document.getElementById("user-balance").textContent = available.toFixed(2);
                 document.getElementById("total-bet-txt").textContent = `$${totalBet.toFixed(2)}`;
 
-                // Actualiza fichas visibles en cada casillero del paño
                 document.querySelectorAll(".felt-cell[data-bet]").forEach((cell) => {
                     const key = cell.dataset.bet;
                     const existing = cell.querySelector(".bet-chip-badge");
@@ -299,6 +330,7 @@
                 document.getElementById("btn-double").disabled = isSpinning || totalBet === 0;
                 document.getElementById("btn-rebet").disabled = isSpinning || !lastRoundBets;
                 document.getElementById("btn-spin-roulette").disabled = isSpinning;
+                document.getElementById("btn-spin-top").disabled = isSpinning;
             }
 
             function renderHistory() {
@@ -309,9 +341,6 @@
                 }).join("");
             }
 
-            // ================================
-            // RENDERIZADO DE LA RUEDA 3D
-            // ================================
             function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -331,7 +360,6 @@
 
                 ctx.clearRect(0, 0, w, h);
 
-                // 1. Aro exterior de madera caoba 3D
                 const woodGrad = ctx.createRadialGradient(cx - r * 0.18, cy - r * 0.18, r * 0.6, cx, cy, r);
                 woodGrad.addColorStop(0, "#7c3b14");
                 woodGrad.addColorStop(0.75, "#4c1f09");
@@ -343,14 +371,12 @@
                 ctx.fillStyle = woodGrad;
                 ctx.fill();
 
-                // Borde dorado exterior
                 ctx.beginPath();
                 ctx.arc(cx, cy, r * 0.985, 0, Math.PI * 2);
                 ctx.strokeStyle = "#d4af37";
                 ctx.lineWidth = r * 0.02;
                 ctx.stroke();
 
-                // Pista inclinada donde gira la bolilla
                 const trackGrad = ctx.createRadialGradient(cx, cy, r * 0.72, cx, cy, r * 0.90);
                 trackGrad.addColorStop(0, "#1c0a02");
                 trackGrad.addColorStop(0.55, "#59280d");
@@ -360,7 +386,6 @@
                 ctx.fillStyle = trackGrad;
                 ctx.fill();
 
-                // 8 Deflectores de bronce (rombos en la pista)
                 for (let d = 0; d < 8; d++) {
                     const ang = (d * Math.PI) / 4;
                     const dx = cx + Math.cos(ang) * (r * 0.815);
@@ -382,7 +407,6 @@
                     ctx.restore();
                 }
 
-                // 2. Rotor interior giratorio (casilleros + números)
                 const outerPocketR = r * 0.75;
                 const numberInnerR = r * 0.56;
                 const pocketInnerR = r * 0.43;
@@ -400,7 +424,6 @@
                     const color = getColor(num);
                     const fillBase = color === "green" ? "#198744" : color === "red" ? "#c0271d" : "#141618";
 
-                    // Sector exterior (número)
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
                     ctx.arc(0, 0, outerPocketR, aStart, aEnd);
@@ -408,13 +431,11 @@
                     ctx.fillStyle = fillBase;
                     ctx.fill();
 
-                    // Iluminación del ganador si corresponde
                     if (i === highlightWinIdx) {
                         ctx.fillStyle = "rgba(255, 215, 0, 0.45)";
                         ctx.fill();
                     }
 
-                    // Separador metálico (fret)
                     ctx.beginPath();
                     ctx.moveTo(Math.cos(aStart) * pocketInnerR, Math.sin(aStart) * pocketInnerR);
                     ctx.lineTo(Math.cos(aStart) * outerPocketR, Math.sin(aStart) * outerPocketR);
@@ -422,7 +443,6 @@
                     ctx.lineWidth = Math.max(1, r * 0.01);
                     ctx.stroke();
 
-                    // Número radial nítido
                     ctx.save();
                     ctx.rotate(aMid + Math.PI / 2);
                     ctx.fillStyle = "#ffffff";
@@ -433,14 +453,12 @@
                     ctx.restore();
                 }
 
-                // Aro separador dorado entre números y bolsillos
                 ctx.beginPath();
                 ctx.arc(0, 0, numberInnerR, 0, Math.PI * 2);
                 ctx.strokeStyle = "#d4af37";
                 ctx.lineWidth = r * 0.018;
                 ctx.stroke();
 
-                // Sombra de profundidad en la zona de bolsillos
                 const pocketShadow = ctx.createRadialGradient(0, 0, pocketInnerR, 0, 0, numberInnerR);
                 pocketShadow.addColorStop(0, "rgba(0,0,0,0.65)");
                 pocketShadow.addColorStop(0.5, "rgba(0,0,0,0.18)");
@@ -451,7 +469,6 @@
                 ctx.fillStyle = pocketShadow;
                 ctx.fill();
 
-                // 3. Cono central 3D metálico (bronce y madera)
                 const coneGrad = ctx.createRadialGradient(-r * 0.08, -r * 0.08, r * 0.04, 0, 0, pocketInnerR);
                 coneGrad.addColorStop(0, "#ffe47a");
                 coneGrad.addColorStop(0.32, "#c69214");
@@ -466,7 +483,6 @@
                 ctx.lineWidth = r * 0.016;
                 ctx.stroke();
 
-                // Brazos de la torre giratoria (4 brazos en cruz)
                 for (let b = 0; b < 4; b++) {
                     ctx.save();
                     ctx.rotate((b * Math.PI) / 2);
@@ -487,7 +503,6 @@
                     ctx.restore();
                 }
 
-                // Remate central brillante
                 const hubGrad = ctx.createRadialGradient(-r * 0.03, -r * 0.03, r * 0.01, 0, 0, r * 0.11);
                 hubGrad.addColorStop(0, "#ffffff");
                 hubGrad.addColorStop(0.35, "#ffd700");
@@ -499,20 +514,17 @@
 
                 ctx.restore();
 
-                // 4. Bolilla de marfil 3D con sombra
                 if (ballVisible) {
                     const br = r * ballRadiusRatio;
                     const bx = cx + Math.cos(ballAngle) * br;
                     const by = cy + Math.sin(ballAngle) * br;
                     const ballSize = r * 0.046;
 
-                    // Sombra debajo de la bolilla
                     ctx.beginPath();
                     ctx.arc(bx + ballSize * 0.35, by + ballSize * 0.45, ballSize, 0, Math.PI * 2);
                     ctx.fillStyle = "rgba(0,0,0,0.55)";
                     ctx.fill();
 
-                    // Esfera brillante
                     const bGrad = ctx.createRadialGradient(
                         bx - ballSize * 0.35, by - ballSize * 0.35, ballSize * 0.1,
                         bx, by, ballSize
@@ -526,7 +538,6 @@
                     ctx.fill();
                 }
 
-                // 5. Brillo de iluminación superior fija (efecto cristal/3D)
                 const gloss = ctx.createLinearGradient(0, 0, 0, h * 0.55);
                 gloss.addColorStop(0, "rgba(255, 255, 255, 0.14)");
                 gloss.addColorStop(0.5, "rgba(255, 255, 255, 0.02)");
@@ -537,9 +548,6 @@
                 ctx.fill();
             }
 
-            // ================================
-            // FIREBASE TRANSACCIONES
-            // ================================
             async function deductFromFirebase(amount) {
                 pendingLocalTx = true;
                 try {
@@ -573,9 +581,6 @@
                 }
             }
 
-            // ================================
-            // CÁLCULO DE PREMIOS
-            // ================================
             function evaluateRoulette(winNum, placedBets) {
                 const color = getColor(winNum);
                 let totalReturn = 0;
@@ -608,20 +613,9 @@
                 return { totalReturn: roundMoney(totalReturn), winningKeys };
             }
 
-            // ================================
-            // ANIMACIÓN DEL GIRO 3D
-            // ================================
-            function easeOutCubic(t) {
-                return 1 - Math.pow(1 - t, 3);
-            }
-
-            function easeOutQuart(t) {
-                return 1 - Math.pow(1 - t, 4);
-            }
-
-            function easeInOutQuad(t) {
-                return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-            }
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+            function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+            function easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
             async function spinRoulette() {
                 if (isSpinning || !balanceLoaded) return;
@@ -642,7 +636,6 @@
                 document.querySelectorAll(".felt-cell.winning-cell").forEach((el) => el.classList.remove("winning-cell"));
                 updateUI();
 
-                // Descontar en Firebase antes de girar
                 let deducted = false;
                 try {
                     deducted = await deductFromFirebase(totalStake);
@@ -660,14 +653,12 @@
                     return;
                 }
 
-                // Guardar copia de las apuestas de esta ronda
                 const activeBets = { ...bets };
                 lastRoundBets = { ...bets };
                 bets = {};
                 betStack = [];
                 updateUI();
 
-                // Elegir número ganador
                 const winIdx = Math.floor(Math.random() * 37);
                 const winNum = WHEEL_ORDER[winIdx];
 
@@ -714,7 +705,6 @@
                             ballRadiusRatio = 0.84 - (0.84 - 0.495) * dropCurve + bounce;
                         }
 
-                        // Sonido de tick al cruzar deflectores/bolsillos
                         const relAngle = ((ballAngle - wheelAngle) % twoPi + twoPi) % twoPi;
                         const sector = Math.floor(relAngle / (SLICE_ANGLE * 2));
                         if (sector !== lastTickSector) {
@@ -752,7 +742,6 @@
                 const colorLabel = color === "green" ? "🟢 VERDE" : color === "red" ? "🔴 ROJO" : "⚫ NEGRO";
                 const { totalReturn, winningKeys } = evaluateRoulette(winNum, activeBets);
 
-                // Resalta en el paño todas las casillas ganadoras
                 winningKeys.forEach((key) => {
                     const el = document.querySelector(`.felt-cell[data-bet="${key}"]`);
                     if (el) el.classList.add("winning-cell");
@@ -798,9 +787,6 @@
                 updateUI();
             }
 
-            // ================================
-            // EVENTOS DEL PAÑO Y CONTROLES
-            // ================================
             document.getElementById("felt-table").addEventListener("click", (e) => {
                 if (isSpinning || !balanceLoaded) return;
                 const cell = e.target.closest(".felt-cell[data-bet]");
@@ -873,6 +859,7 @@
                 updateUI();
             });
 
+            document.getElementById("btn-spin-top").addEventListener("click", spinRoulette);
             document.getElementById("btn-spin-roulette").addEventListener("click", spinRoulette);
 
             document.getElementById("btn-view-3d").addEventListener("click", () => {
@@ -904,7 +891,6 @@
                 if (isSpinning) e.preventDefault();
             });
 
-            // Escucha de saldo en tiempo real en Firebase
             document.getElementById("user-name").textContent = activeUser.toUpperCase();
             buildNumbersGrid();
             resizeCanvas();
