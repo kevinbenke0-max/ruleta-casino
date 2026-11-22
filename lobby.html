@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby VIP - Royal Casino</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="classic-casino-theme" style="justify-content: flex-start; padding-top: 18px;">
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="lobby-shell">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="top-nav-bar">
+            <div class="player-info-group">
+                <span class="user-pill">👤 <span id="lobby-user">USER</span></span>
+                <span class="balance-pill">$<span id="lobby-balance-nav">0.00</span></span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-nav-icon logout" id="btn-logout">Salir</button>
+            </div>
+        </header>
+
+        <!-- BANNER SALDO EN VIVO -->
+        <section class="lobby-hero">
+            <span class="casino-badge">🟢 SALA EN VIVO · FIREBASE</span>
+            <h1 class="casino-title">👑 ROYAL CASINO VIP</h1>
+            <div class="lobby-balance-big">$<span id="lobby-balance-big">0.00</span></div>
+            <p class="casino-subtitle">Tu saldo se sincroniza automáticamente en todos los juegos</p>
+        </section>
+
+        <!-- SELECTOR DE JUEGOS -->
+        <div class="section-title" style="margin-bottom: -4px;">
+            <span>🎮 Elegí tu mesa o máquina</span>
+        </div>
+
+        <section class="games-grid">
+            <a href="ruleta.html" class="game-card">
+                <div class="game-card-banner roulette-bg">
+                    <span class="game-pill-tag">3D EN VIVO</span>
+                    <div class="game-card-icon">🎡</div>
+                </div>
+                <div class="game-card-body">
+                    <div class="game-card-title">Ruleta Europea 3D</div>
+                    <p class="game-card-desc">
+                        Rueda realista en perspectiva 3D, apuestas plenas 35:1, docenas, columnas, rojo/negro y fichas rápidas.
+                    </p>
+                    <span class="btn btn-primary" style="margin-top: 4px;">JUGAR RULETA</span>
+                </div>
+            </a>
+
+            <a href="tragamonedas.html" class="game-card">
+                <div class="game-card-banner slots-bg">
+                    <span class="game-pill-tag">JACKPOT 1000x</span>
+                    <div class="game-card-icon">🎰</div>
+                </div>
+                <div class="game-card-body">
+                    <div class="game-card-title">Go High Fruit HD</div>
+                    <p class="game-card-desc">
+                        Tragamonedas 5x3 con 5 líneas de pago, 4 Jackpots progresivos por apuesta y compra de 8 Giros Gratis x2.
+                    </p>
+                    <span class="btn btn-primary" style="margin-top: 4px;">JUGAR SLOTS</span>
+                </div>
+            </a>
+        </section>
+
+    </div>
+
+    <script type="module">
+        import { db, ref, onValue, isConfigured, roundMoney } from "./firebase-config.js";
+
+        const activeUser = sessionStorage.getItem("active_user");
+        if (!activeUser || !isConfigured) {
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("lobby-user").textContent = activeUser.toUpperCase();
+
+            let loaded = false;
+            let lastBalance = 0;
+
+            function showToast(msg) {
+                const container = document.getElementById("toast-container");
+                const toast = document.createElement("div");
+                toast.className = "toast success";
+                toast.textContent = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            onValue(ref(db, `users/${activeUser}`), (snapshot) => {
+                if (!snapshot.exists()) {
+                    sessionStorage.removeItem("active_user");
+                    window.location.href = "index.html";
+                    return;
+                }
+                const bal = roundMoney(snapshot.val().chips || 0);
+                if (loaded && bal > lastBalance) {
+                    showToast(`💰 ¡El cajero te acreditó +$${roundMoney(bal - lastBalance).toFixed(2)}!`);
+                }
+                lastBalance = bal;
+                loaded = true;
+                document.getElementById("lobby-balance-nav").textContent = bal.toFixed(2);
+                document.getElementById("lobby-balance-big").textContent = bal.toFixed(2);
+            });
+
+            document.getElementById("btn-logout").addEventListener("click", () => {
+                sessionStorage.removeItem("active_user");
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>
