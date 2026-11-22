@@ -5,113 +5,391 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cajero - Royal Casino</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="classic-casino-theme" style="padding: 20px; justify-content: flex-start;">
+<body class="classic-casino-theme" style="justify-content: flex-start; padding-top: 24px;">
 
-    <div class="casino-box" style="max-width: 450px; width: 100%;">
-        <h1 class="casino-title" style="font-size: 1.2rem;">📌 CAJERO / GESTIÓN</h1>
-        
-        <div style="margin-bottom: 20px;">
-            <h3 style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px;">Cargar / Retirar Fichas</h3>
-            <div class="form-group">
-                <label>Usuario:</label>
-                <input type="text" id="target-user" placeholder="Nombre de usuario">
-            </div>
-            <div class="form-group">
-                <label>Cantidad:</label>
-                <input type="number" id="chips-amount" placeholder="Ej: 1000">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="modifyChips('ADD')" class="btn-primary" style="background:#2ecc71; color:#000;">➕ CARGAR</button>
-                <button onclick="modifyChips('REMOVE')" class="btn-primary" style="background:#e74c3c;">➖ RETIRAR</button>
-            </div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- PANTALLA DE PIN -->
+    <div id="pin-screen" class="casino-box">
+        <div class="casino-header">
+            <span class="casino-badge">ÁREA RESTRINGIDA</span>
+            <h1 class="casino-title">🔐 PANEL DEL CAJERO</h1>
+            <p class="casino-subtitle">Ingresá el PIN de administrador para gestionar fichas</p>
         </div>
 
-        <hr style="border-color: #1b4d2e; margin: 15px 0;">
+        <div id="pin-error" class="inline-error"></div>
 
-        <div style="margin-bottom: 15px;">
-            <h3 style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px;">Registrar Nuevo Jugador</h3>
+        <form id="pin-form">
             <div class="form-group">
-                <label>Usuario:</label>
-                <input type="text" id="new-user" placeholder="Nuevo usuario">
+                <label for="cajero-pin">PIN de Acceso</label>
+                <input type="password" id="cajero-pin" inputmode="numeric" placeholder="Ingresá el PIN" required>
             </div>
-            <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" id="new-pass" placeholder="Contraseña">
-            </div>
-            <div class="form-group">
-                <label>Fichas iniciales:</label>
-                <input type="number" id="new-chips" value="2000">
-            </div>
-            <button onclick="createNewPlayer()" class="btn-primary">CREAR CUENTA</button>
+            <button type="submit" class="btn btn-primary">DESBLOQUEAR CAJERO</button>
+        </form>
+
+        <div class="casino-footer-links">
+            <a href="index.html" class="casino-link">← Volver al Login</a>
         </div>
-
-        <button onclick="window.location.href='index.html'" class="btn-primary" style="background:#444; margin-top: 10px;">VOLVER AL LOGIN</button>
     </div>
 
-    <script>
-        function getUsersDB() {
-            let users = localStorage.getItem('casino_users');
-            if (!users) {
-                let defaultUsers = { "admin": { pass: "1234", chips: 5000 } };
-                localStorage.setItem('casino_users', JSON.stringify(defaultUsers));
-                return defaultUsers;
+    <!-- PANEL DEL CAJERO EN VIVO -->
+    <div id="cajero-panel" class="casino-box wide" style="display: none;">
+        <div class="casino-header" style="margin-bottom: 14px;">
+            <span class="casino-badge">🟢 CONECTADO A FIREBASE</span>
+            <h1 class="casino-title" style="font-size: 1.25rem;">💼 CAJERO ROYAL CASINO</h1>
+        </div>
+
+        <div id="config-warning" class="inline-error"></div>
+
+        <!-- LISTA EN VIVO DE JUGADORES -->
+        <div>
+            <div class="section-title">
+                <span>👥 Jugadores en Vivo</span>
+                <span id="total-users-count" style="color: #93aba0; font-size: 0.72rem;">Cargando...</span>
+            </div>
+            <div class="users-table-wrap">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Saldo</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- CARGAR / RETIRAR FICHAS -->
+        <div>
+            <div class="section-title">💰 Cargar / Retirar Fichas</div>
+            <div class="form-group">
+                <label for="target-user">Usuario seleccionado</label>
+                <input type="text" id="target-user" placeholder="Tocá 'Usar' arriba o escribí el usuario">
+            </div>
+            <div class="form-group">
+                <label for="chips-amount">Monto ($)</label>
+                <input type="number" id="chips-amount" min="1" step="any" placeholder="Ej: 1000">
+            </div>
+
+            <div class="quick-chips-row" id="quick-chips-row">
+                <button type="button" class="btn-chip" data-amount="500">+$500</button>
+                <button type="button" class="btn-chip" data-amount="1000">+$1,000</button>
+                <button type="button" class="btn-chip" data-amount="5000">+$5,000</button>
+                <button type="button" class="btn-chip" data-amount="10000">+$10,000</button>
+            </div>
+
+            <div class="btn-row">
+                <button type="button" id="btn-add-chips" class="btn btn-success">➕ CARGAR</button>
+                <button type="button" id="btn-remove-chips" class="btn btn-danger">➖ RETIRAR</button>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- REGISTRAR NUEVO JUGADOR -->
+        <div>
+            <div class="section-title">➕ Crear Nuevo Jugador</div>
+            <div class="form-group">
+                <label for="new-user">Usuario (solo letras, números, _ o -)</label>
+                <input type="text" id="new-user" placeholder="Ej: juan_24">
+            </div>
+            <div class="btn-row" style="margin-top: 0;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="new-pass">Contraseña</label>
+                    <input type="password" id="new-pass" placeholder="Clave">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="new-chips">Fichas iniciales</label>
+                    <input type="number" id="new-chips" min="0" value="2000">
+                </div>
+            </div>
+            <button type="button" id="btn-create-player" class="btn btn-primary">CREAR CUENTA</button>
+        </div>
+
+        <hr class="divider">
+
+        <!-- HISTORIAL EN VIVO -->
+        <div>
+            <div class="section-title">
+                <span>🧾 Últimos Movimientos</span>
+                <button type="button" id="btn-clear-history" class="btn-mini delete">Limpiar</button>
+            </div>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+
+        <div class="btn-row" style="margin-top: 18px;">
+            <button type="button" id="btn-back-login" class="btn btn-secondary">← VOLVER AL LOGIN</button>
+            <button type="button" id="btn-lock-cajero" class="btn btn-danger" style="max-width: 140px;">🔒 BLOQUEAR</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import {
+            db, ref, get, set, remove, push, onValue, runTransaction, query, limitToLast,
+            isConfigured, roundMoney, ensureAdminExists
+        } from "./firebase-config.js";
+
+        // Cambiá este PIN por el tuyo personal cuando quieras
+        const CAJERO_PIN = "1234";
+        let listenersStarted = false;
+
+        function showToast(msg, type = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function addHistory(type, user, amount) {
+            const now = new Date();
+            const time = now.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+            await push(ref(db, "history"), { type, user, amount: roundMoney(amount), time });
+        }
+
+        function startRealtimeListeners() {
+            if (listenersStarted) return;
+            if (!isConfigured) {
+                const warn = document.getElementById("config-warning");
+                warn.textContent = "⚠️ Falta configurar firebase-config.js.";
+                warn.classList.add("visible");
+                return;
             }
-            return JSON.parse(users);
+
+            listenersStarted = true;
+            ensureAdminExists().catch(() => {});
+
+            onValue(ref(db, "users"), (snapshot) => {
+                const users = snapshot.val() || {};
+                const tbody = document.getElementById("users-table-body");
+                const keys = Object.keys(users).sort();
+                document.getElementById("total-users-count").textContent =
+                    `${keys.length} cuenta${keys.length === 1 ? "" : "s"}`;
+
+                if (!keys.length) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#777;">Sin jugadores</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = keys.map((uname) => {
+                    const bal = Number(users[uname].chips || 0).toFixed(2);
+                    const deleteBtn = uname === "admin"
+                        ? ""
+                        : `<button type="button" class="btn-mini delete" data-action="delete" data-user="${uname}">Borrar</button>`;
+                    return `<tr>
+                        <td><strong>${uname}</strong></td>
+                        <td><span class="balance-badge">$${bal}</span></td>
+                        <td>
+                            <div class="table-actions">
+                                <button type="button" class="btn-mini select" data-action="select" data-user="${uname}">Usar</button>
+                                ${deleteBtn}
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join("");
+            });
+
+            onValue(query(ref(db, "history"), limitToLast(15)), (snapshot) => {
+                const list = document.getElementById("history-list");
+                const items = [];
+                snapshot.forEach((child) => {
+                    items.unshift(child.val());
+                });
+
+                if (!items.length) {
+                    list.innerHTML = `<li class="history-item" style="justify-content:center; color:#777;">Sin movimientos recientes</li>`;
+                    return;
+                }
+
+                list.innerHTML = items.map((item) => {
+                    let badge = "";
+                    const amt = Number(item.amount || 0).toFixed(2);
+                    if (item.type === "ADD") badge = `<span class="tag-add">+$${amt}</span>`;
+                    else if (item.type === "REMOVE") badge = `<span class="tag-remove">-$${amt}</span>`;
+                    else badge = `<span class="tag-new">NUEVO ($${amt})</span>`;
+
+                    return `<li class="history-item">
+                        <span><strong>${item.user}</strong> · ${badge}</span>
+                        <span class="history-time">${item.time || ""}</span>
+                    </li>`;
+                }).join("");
+            });
         }
 
-        function saveUsersDB(users) {
-            localStorage.setItem('casino_users', JSON.stringify(users));
-        }
+        async function modifyChips(action) {
+            if (!isConfigured) return;
+            const uname = document.getElementById("target-user").value.trim().toLowerCase();
+            const amount = roundMoney(parseFloat(document.getElementById("chips-amount").value));
 
-        function modifyChips(action) {
-            let uname = document.getElementById('target-user').value.trim().toLowerCase();
-            let amount = parseInt(document.getElementById('chips-amount').value);
-            let users = getUsersDB();
-
-            if (!users[uname]) {
-                alert("❌ El usuario no existe.");
+            if (!uname || !/^[a-z0-9_-]+$/.test(uname)) {
+                showToast("⚠️ Ingresá un usuario válido.", "error");
                 return;
             }
             if (isNaN(amount) || amount <= 0) {
-                alert("⚠️ Ingresa una cantidad válida.");
+                showToast("⚠️ Ingresá un monto mayor a 0.", "error");
                 return;
             }
 
-            if (action === 'ADD') {
-                users[uname].chips += amount;
-                alert(`✅ Se cargaron $${amount} a ${uname}. Saldo actual: $${users[uname].chips}`);
-            } else {
-                if (users[uname].chips < amount) {
-                    alert("❌ El usuario no tiene tantas fichas para retirar.");
+            try {
+                const userSnap = await get(ref(db, `users/${uname}`));
+                if (!userSnap.exists()) {
+                    showToast("❌ El usuario no existe.", "error");
                     return;
                 }
-                users[uname].chips -= amount;
-                alert(`✅ Se retiraron $${amount} de ${uname}. Saldo actual: $${users[uname].chips}`);
-            }
 
-            saveUsersDB(users);
+                const chipsRef = ref(db, `users/${uname}/chips`);
+                const currentKnown = Number(userSnap.val().chips || 0);
+
+                const tx = await runTransaction(chipsRef, (current) => {
+                    const base = Number(current ?? currentKnown);
+                    if (action === "ADD") {
+                        return roundMoney(base + amount);
+                    }
+                    if (base < amount) {
+                        return;
+                    }
+                    return roundMoney(base - amount);
+                });
+
+                if (!tx.committed) {
+                    showToast("❌ El jugador no tiene suficiente saldo para retirar.", "error");
+                    return;
+                }
+
+                const newBalance = Number(tx.snapshot.val() || 0);
+                await addHistory(action, uname, amount);
+                document.getElementById("chips-amount").value = "";
+
+                if (action === "ADD") {
+                    showToast(`✅ Cargaste $${amount.toFixed(2)} a ${uname}. Saldo: $${newBalance.toFixed(2)}`);
+                } else {
+                    showToast(`✅ Retiraste $${amount.toFixed(2)} de ${uname}. Saldo: $${newBalance.toFixed(2)}`);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Error al actualizar saldo en Firebase.", "error");
+            }
         }
 
-        function createNewPlayer() {
-            let uname = document.getElementById('new-user').value.trim().toLowerCase();
-            let upass = document.getElementById('new-pass').value.trim();
-            let uchips = parseInt(document.getElementById('new-chips').value) || 1000;
-            let users = getUsersDB();
+        async function createNewPlayer() {
+            if (!isConfigured) return;
+            const uname = document.getElementById("new-user").value.trim().toLowerCase();
+            const upass = document.getElementById("new-pass").value.trim();
+            const uchips = roundMoney(parseFloat(document.getElementById("new-chips").value) || 0);
 
             if (!uname || !upass) {
-                alert("⚠️ Completa todos los campos.");
+                showToast("⚠️ Completá usuario y contraseña.", "error");
                 return;
             }
-            if (users[uname]) {
-                alert("❌ El usuario ya existe.");
+            if (!/^[a-z0-9_-]{3,20}$/.test(uname)) {
+                showToast("⚠️ Usá entre 3 y 20 caracteres (letras, números, _ o -).", "error");
+                return;
+            }
+            if (uchips < 0) {
+                showToast("⚠️ Las fichas iniciales no pueden ser negativas.", "error");
                 return;
             }
 
-            users[uname] = { pass: upass, chips: uchips };
-            saveUsersDB(users);
-            alert(`🎉 ¡Jugador ${uname} creado con éxito con $${uchips} fichas!`);
+            try {
+                const userRef = ref(db, `users/${uname}`);
+                const existing = await get(userRef);
+                if (existing.exists()) {
+                    showToast("❌ Ese usuario ya existe.", "error");
+                    return;
+                }
+
+                await set(userRef, { pass: upass, chips: uchips });
+                await addHistory("NEW", uname, uchips);
+                showToast(`🎉 Jugador "${uname}" creado con $${uchips.toFixed(2)}`);
+
+                document.getElementById("new-user").value = "";
+                document.getElementById("new-pass").value = "";
+                document.getElementById("new-chips").value = "2000";
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Error al crear jugador en Firebase.", "error");
+            }
+        }
+
+        document.getElementById("users-table-body").addEventListener("click", async (e) => {
+            const btn = e.target.closest("button[data-action]");
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            const uname = btn.dataset.user;
+
+            if (action === "select") {
+                document.getElementById("target-user").value = uname;
+                document.getElementById("chips-amount").focus();
+                showToast(`Usuario "${uname}" seleccionado.`);
+            } else if (action === "delete") {
+                if (!confirm(`¿Seguro que querés eliminar la cuenta "${uname}"?`)) return;
+                try {
+                    await remove(ref(db, `users/${uname}`));
+                    showToast(`🗑️ Cuenta "${uname}" eliminada.`);
+                } catch {
+                    showToast("❌ No se pudo eliminar la cuenta.", "error");
+                }
+            }
+        });
+
+        document.getElementById("quick-chips-row").addEventListener("click", (e) => {
+            const btn = e.target.closest("button[data-amount]");
+            if (!btn) return;
+            const input = document.getElementById("chips-amount");
+            input.value = (parseFloat(input.value) || 0) + Number(btn.dataset.amount);
+        });
+
+        document.getElementById("btn-add-chips").addEventListener("click", () => modifyChips("ADD"));
+        document.getElementById("btn-remove-chips").addEventListener("click", () => modifyChips("REMOVE"));
+        document.getElementById("btn-create-player").addEventListener("click", createNewPlayer);
+
+        document.getElementById("btn-clear-history").addEventListener("click", async () => {
+            if (!isConfigured) return;
+            await remove(ref(db, "history"));
+            showToast("Historial limpiado.");
+        });
+
+        document.getElementById("btn-back-login").addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+
+        function openPanel() {
+            document.getElementById("pin-screen").style.display = "none";
+            document.getElementById("cajero-panel").style.display = "block";
+            startRealtimeListeners();
+        }
+
+        document.getElementById("btn-lock-cajero").addEventListener("click", () => {
+            sessionStorage.removeItem("cajero_auth");
+            document.getElementById("cajero-panel").style.display = "none";
+            document.getElementById("pin-screen").style.display = "block";
+            document.getElementById("cajero-pin").value = "";
+        });
+
+        document.getElementById("pin-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const entered = document.getElementById("cajero-pin").value.trim();
+            if (entered === CAJERO_PIN) {
+                sessionStorage.setItem("cajero_auth", "1");
+                document.getElementById("pin-error").classList.remove("visible");
+                openPanel();
+            } else {
+                const err = document.getElementById("pin-error");
+                err.textContent = "❌ PIN incorrecto.";
+                err.classList.add("visible");
+            }
+        });
+
+        if (sessionStorage.getItem("cajero_auth") === "1") {
+            openPanel();
         }
     </script>
 </body>
