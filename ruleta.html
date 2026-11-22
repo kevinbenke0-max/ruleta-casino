@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ruleta Europea 3D - Royal Casino</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="roulette-body">
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="roulette-app">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="top-nav-bar">
+            <div class="player-info-group">
+                <span class="user-pill">👤 <span id="user-name">USER</span></span>
+                <span class="balance-pill">$<span id="user-balance">0.00</span></span>
+            </div>
+            <div class="nav-actions">
+                <a href="lobby.html" class="btn-nav-icon lobby" id="btn-lobby">🏠 Lobby</a>
+                <button class="btn-nav-icon" id="btn-view-3d" title="Cambiar ángulo 3D/2D">3D</button>
+                <button class="btn-nav-icon" id="btn-sound" title="Sonido">🔊</button>
+                <button class="btn-nav-icon" id="btn-rules" title="Pagos">ℹ️</button>
+            </div>
+        </header>
+
+        <!-- HISTORIAL DE BOLAS -->
+        <div class="roulette-history-bar" id="history-bar">
+            <span class="history-label">ÚLTIMOS:</span>
+            <span style="font-size: 0.7rem; color: #7e9b8a;">Esperando primer giro...</span>
+        </div>
+
+        <!-- RUEDA EUROPEA 3D -->
+        <section class="wheel-stage-3d">
+            <div class="wheel-tilt-wrap" id="wheel-tilt-wrap">
+                <canvas id="roulette-canvas"></canvas>
+            </div>
+
+            <div class="wheel-hud-row">
+                <div class="result-pill">
+                    <span id="status-text" style="color: #b7cdbf;">Hacé tus apuestas</span>
+                    <span class="result-num-badge" id="last-result-badge">—</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FICHAS DE CASINO -->
+        <div class="chips-bar" id="chips-bar">
+            <button type="button" class="poker-chip c5" data-val="5">$5</button>
+            <button type="button" class="poker-chip c10 selected" data-val="10">$10</button>
+            <button type="button" class="poker-chip c25" data-val="25">$25</button>
+            <button type="button" class="poker-chip c100" data-val="100">$100</button>
+            <button type="button" class="poker-chip c500" data-val="500">$500</button>
+        </div>
+
+        <!-- PAÑO DE APUESTAS -->
+        <section class="felt-table" id="felt-table">
+            <div class="felt-cell zero" data-bet="num_0">0</div>
+
+            <!-- 1 al 36 (6 columnas para tocar cómodo en el celular) -->
+            <div class="numbers-grid-3col" id="numbers-grid"></div>
+
+            <!-- Columnas 2:1 -->
+            <div class="columns-row">
+                <div class="felt-cell outside" data-bet="col_1">COL 1 (2:1)</div>
+                <div class="felt-cell outside" data-bet="col_2">COL 2 (2:1)</div>
+                <div class="felt-cell outside" data-bet="col_3">COL 3 (2:1)</div>
+            </div>
+
+            <!-- Docenas 2:1 -->
+            <div class="dozens-row">
+                <div class="felt-cell outside" data-bet="doz_1">1ra 12 (1-12)</div>
+                <div class="felt-cell outside" data-bet="doz_2">2da 12 (13-24)</div>
+                <div class="felt-cell outside" data-bet="doz_3">3ra 12 (25-36)</div>
+            </div>
+
+            <!-- Apuestas simples 1:1 -->
+            <div class="even-money-row">
+                <div class="felt-cell outside" data-bet="low">1 - 18</div>
+                <div class="felt-cell outside" data-bet="even">PAR</div>
+                <div class="felt-cell outside red-bet" data-bet="red">🔴 ROJO</div>
+                <div class="felt-cell outside black-bet" data-bet="black">⚫ NEGRO</div>
+                <div class="felt-cell outside" data-bet="odd">IMPAR</div>
+                <div class="felt-cell outside" data-bet="high">19 - 36</div>
+            </div>
+        </section>
+
+        <!-- BOTONERA DE CONTROL -->
+        <section class="roulette-controls-deck">
+            <div class="roulette-meta-row">
+                <span>APUESTA TOTAL: <strong id="total-bet-txt">$0.00</strong></span>
+                <span>ÚLTIMO PREMIO: <strong id="last-win-txt">$0.00</strong></span>
+            </div>
+
+            <div class="roulette-actions-grid">
+                <button type="button" class="btn-table-action" id="btn-undo">↩️ Deshacer</button>
+                <button type="button" class="btn-table-action" id="btn-clear">🗑️ Limpiar</button>
+                <button type="button" class="btn-table-action" id="btn-double">✖️ x2</button>
+                <button type="button" class="btn-table-action" id="btn-rebet">🔁 Repetir</button>
+            </div>
+
+            <button type="button" class="spin-button-hero" id="btn-spin-roulette">
+                <span>GIRAR RULETA</span> 🎡
+            </button>
+        </section>
+
+    </div>
+
+    <!-- MODAL PAGOS -->
+    <div id="rules-modal" class="modal-overlay hidden">
+        <div class="modal-card" id="rules-modal-card">
+            <h2>📜 PAGOS RULETA EUROPEA</h2>
+            <p class="modal-note">
+                Elegí una ficha, tocá los números o zonas del paño para apostar y presioná <strong>GIRAR RULETA</strong>.
+            </p>
+            <ul class="payout-list">
+                <li><span>🎯 <strong>Pleno (0 al 36)</strong></span><span>35 a 1 (x36)</span></li>
+                <li><span>📊 <strong>Docena (12 números)</strong></span><span>2 a 1 (x3)</span></li>
+                <li><span>🏛️ <strong>Columna (Col 1, 2 o 3)</strong></span><span>2 a 1 (x3)</span></li>
+                <li><span>🔴⚫ <strong>Rojo / Negro</strong></span><span>1 a 1 (x2)</span></li>
+                <li><span>⚖️ <strong>Par / Impar · 1-18 / 19-36</strong></span><span>1 a 1 (x2)</span></li>
+            </ul>
+            <p class="modal-note">
+                Col 1 = 1, 4, 7... 34 · Col 2 = 2, 5, 8... 35 · Col 3 = 3, 6, 9... 36. Si sale 0 ganan las apuestas al 0.
+            </p>
+            <button class="btn btn-primary" id="btn-close-rules">ENTENDIDO</button>
+        </div>
+    </div>
+
+    <!-- CELEBRACIÓN DE PREMIO -->
+    <div id="big-win-overlay" class="modal-overlay hidden">
+        <div class="big-win-card">
+            <div class="big-win-title" id="big-win-title">🎉 ¡GANASTE! 🎉</div>
+            <div class="big-win-amount" id="big-win-amount">$0.00</div>
+            <p style="font-size: 0.72rem; color: #d7c79e;">Tocá para continuar</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, ref, onValue, runTransaction, isConfigured, roundMoney } from "./firebase-config.js";
+
+        const activeUser = sessionStorage.getItem("active_user");
+        if (!activeUser || !isConfigured) {
+            window.location.href = "index.html";
+        } else {
+            initRoulette();
+        }
+
+        function initRoulette() {
+            const WHEEL_ORDER = [
+                0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
+                5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+            ];
+            const RED_NUMBERS = new Set([
+                1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36
+            ]);
+            const SLICE_ANGLE = (Math.PI * 2) / 37;
+
+            const userRef = ref(db, `users/${activeUser}`);
+            const chipsRef = ref(db, `users/${activeUser}/chips`);
+
+            let currentChips = 0;
+            let balanceLoaded = false;
+            let pendingLocalTx = false;
+            let selectedChip = 10;
+            let bets = {};
+            let betStack = [];
+            let lastRoundBets = null;
+            let isSpinning = false;
+            let soundEnabled = true;
+            let is3DView = true;
+            let recentNumbers = [];
+
+            // Estado visual de la rueda 3D
+            let wheelAngle = 0;
+            let ballAngle = -Math.PI / 2;
+            let ballRadiusRatio = 0.84;
+            let ballVisible = false;
+            let highlightWinIdx = -1;
+            let audioCtx = null;
+
+            const canvas = document.getElementById("roulette-canvas");
+            const ctx = canvas.getContext("2d");
+
+            function getColor(num) {
+                if (num === 0) return "green";
+                return RED_NUMBERS.has(num) ? "red" : "black";
+            }
+
+            function getTotalBet() {
+                return roundMoney(Object.values(bets).reduce((sum, v) => sum + v, 0));
+            }
+
+            function showToast(msg, type = "error") {
+                const container = document.getElementById("toast-container");
+                const toast = document.createElement("div");
+                toast.className = `toast ${type}`;
+                toast.textContent = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 2600);
+            }
+
+            // Audio sintetizado con Web Audio API (sin enlaces externos que fallen)
+            function ensureAudio() {
+                if (!soundEnabled) return null;
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) audioCtx = new AudioContext();
+                }
+                if (audioCtx && audioCtx.state === "suspended") {
+                    audioCtx.resume().catch(() => {});
+                }
+                return audioCtx;
+            }
+
+            function playTick(pitch = 950, vol = 0.05) {
+                const ac = ensureAudio();
+                if (!ac) return;
+                const osc = ac.createOscillator();
+                const gain = ac.createGain();
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(pitch, ac.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(220, ac.currentTime + 0.025);
+                gain.gain.setValueAtTime(vol, ac.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.03);
+                osc.connect(gain);
+                gain.connect(ac.destination);
+                osc.start();
+                osc.stop(ac.currentTime + 0.032);
+            }
+
+            function playChipSound() {
+                playTick(1400, 0.06);
+            }
+
+            function playWinFanfare() {
+                const ac = ensureAudio();
+                if (!ac) return;
+                [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                    const osc = ac.createOscillator();
+                    const gain = ac.createGain();
+                    osc.type = "sine";
+                    const start = ac.currentTime + i * 0.08;
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0.08, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ac.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.36);
+                });
+            }
+
+            // Construye el tablero 1 al 36
+            function buildNumbersGrid() {
+                const grid = document.getElementById("numbers-grid");
+                grid.innerHTML = "";
+                for (let n = 1; n <= 36; n++) {
+                    const cell = document.createElement("div");
+                    cell.className = `felt-cell ${getColor(n)}`;
+                    cell.dataset.bet = `num_${n}`;
+                    cell.textContent = n;
+                    grid.appendChild(cell);
+                }
+            }
+
+            function updateUI() {
+                const totalBet = getTotalBet();
+                const available = roundMoney(Math.max(0, currentChips - totalBet));
+                document.getElementById("user-balance").textContent = available.toFixed(2);
+                document.getElementById("total-bet-txt").textContent = `$${totalBet.toFixed(2)}`;
+
+                // Actualiza fichas visibles en cada casillero del paño
+                document.querySelectorAll(".felt-cell[data-bet]").forEach((cell) => {
+                    const key = cell.dataset.bet;
+                    const existing = cell.querySelector(".bet-chip-badge");
+                    const val = bets[key] || 0;
+                    if (val > 0) {
+                        const label = val >= 1000 ? `${(val / 1000).toFixed(1)}k` : `${val}`;
+                        if (existing) {
+                            existing.textContent = `$${label}`;
+                        } else {
+                            const badge = document.createElement("span");
+                            badge.className = "bet-chip-badge";
+                            badge.textContent = `$${label}`;
+                            cell.appendChild(badge);
+                        }
+                    } else if (existing) {
+                        existing.remove();
+                    }
+                });
+
+                document.getElementById("btn-undo").disabled = isSpinning || betStack.length === 0;
+                document.getElementById("btn-clear").disabled = isSpinning || totalBet === 0;
+                document.getElementById("btn-double").disabled = isSpinning || totalBet === 0;
+                document.getElementById("btn-rebet").disabled = isSpinning || !lastRoundBets;
+                document.getElementById("btn-spin-roulette").disabled = isSpinning;
+            }
+
+            function renderHistory() {
+                const bar = document.getElementById("history-bar");
+                if (!recentNumbers.length) return;
+                bar.innerHTML = `<span class="history-label">ÚLTIMOS:</span>` + recentNumbers.map((num, idx) => {
+                    return `<span class="hist-ball ${getColor(num)} ${idx === 0 ? "latest" : ""}">${num}</span>`;
+                }).join("");
+            }
+
+            // ================================
+            // RENDERIZADO DE LA RUEDA 3D
+            // ================================
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                canvas.width = Math.round(rect.width * dpr);
+                canvas.height = Math.round(rect.height * dpr);
+                drawWheel();
+            }
+
+            function drawWheel() {
+                const w = canvas.width;
+                const h = canvas.height;
+                if (!w || !h) return;
+
+                const cx = w / 2;
+                const cy = h / 2;
+                const r = Math.min(cx, cy) - 2;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // 1. Aro exterior de madera caoba 3D
+                const woodGrad = ctx.createRadialGradient(cx - r * 0.18, cy - r * 0.18, r * 0.6, cx, cy, r);
+                woodGrad.addColorStop(0, "#7c3b14");
+                woodGrad.addColorStop(0.75, "#4c1f09");
+                woodGrad.addColorStop(0.92, "#2a0e03");
+                woodGrad.addColorStop(1, "#160701");
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fillStyle = woodGrad;
+                ctx.fill();
+
+                // Borde dorado exterior
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 0.985, 0, Math.PI * 2);
+                ctx.strokeStyle = "#d4af37";
+                ctx.lineWidth = r * 0.02;
+                ctx.stroke();
+
+                // Pista inclinada donde gira la bolilla
+                const trackGrad = ctx.createRadialGradient(cx, cy, r * 0.72, cx, cy, r * 0.90);
+                trackGrad.addColorStop(0, "#1c0a02");
+                trackGrad.addColorStop(0.55, "#59280d");
+                trackGrad.addColorStop(1, "#2b1104");
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 0.90, 0, Math.PI * 2);
+                ctx.fillStyle = trackGrad;
+                ctx.fill();
+
+                // 8 Deflectores de bronce (rombos en la pista)
+                for (let d = 0; d < 8; d++) {
+                    const ang = (d * Math.PI) / 4;
+                    const dx = cx + Math.cos(ang) * (r * 0.815);
+                    const dy = cy + Math.sin(ang) * (r * 0.815);
+                    ctx.save();
+                    ctx.translate(dx, dy);
+                    ctx.rotate(ang);
+                    ctx.beginPath();
+                    ctx.moveTo(r * 0.025, 0);
+                    ctx.lineTo(0, r * 0.042);
+                    ctx.lineTo(-r * 0.025, 0);
+                    ctx.lineTo(0, -r * 0.042);
+                    ctx.closePath();
+                    ctx.fillStyle = "#f1c40f";
+                    ctx.fill();
+                    ctx.strokeStyle = "#6e4e06";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 2. Rotor interior giratorio (casilleros + números)
+                const outerPocketR = r * 0.75;
+                const numberInnerR = r * 0.56;
+                const pocketInnerR = r * 0.43;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(wheelAngle);
+
+                for (let i = 0; i < 37; i++) {
+                    const num = WHEEL_ORDER[i];
+                    const aStart = (i - 0.5) * SLICE_ANGLE - Math.PI / 2;
+                    const aEnd = (i + 0.5) * SLICE_ANGLE - Math.PI / 2;
+                    const aMid = i * SLICE_ANGLE - Math.PI / 2;
+
+                    const color = getColor(num);
+                    const fillBase = color === "green" ? "#198744" : color === "red" ? "#c0271d" : "#141618";
+
+                    // Sector exterior (número)
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, outerPocketR, aStart, aEnd);
+                    ctx.closePath();
+                    ctx.fillStyle = fillBase;
+                    ctx.fill();
+
+                    // Iluminación del ganador si corresponde
+                    if (i === highlightWinIdx) {
+                        ctx.fillStyle = "rgba(255, 215, 0, 0.45)";
+                        ctx.fill();
+                    }
+
+                    // Separador metálico (fret)
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(aStart) * pocketInnerR, Math.sin(aStart) * pocketInnerR);
+                    ctx.lineTo(Math.cos(aStart) * outerPocketR, Math.sin(aStart) * outerPocketR);
+                    ctx.strokeStyle = "#e8c860";
+                    ctx.lineWidth = Math.max(1, r * 0.01);
+                    ctx.stroke();
+
+                    // Número radial nítido
+                    ctx.save();
+                    ctx.rotate(aMid + Math.PI / 2);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = `900 ${Math.round(r * 0.072)}px Montserrat, sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(String(num), 0, -r * 0.655);
+                    ctx.restore();
+                }
+
+                // Aro separador dorado entre números y bolsillos
+                ctx.beginPath();
+                ctx.arc(0, 0, numberInnerR, 0, Math.PI * 2);
+                ctx.strokeStyle = "#d4af37";
+                ctx.lineWidth = r * 0.018;
+                ctx.stroke();
+
+                // Sombra de profundidad en la zona de bolsillos
+                const pocketShadow = ctx.createRadialGradient(0, 0, pocketInnerR, 0, 0, numberInnerR);
+                pocketShadow.addColorStop(0, "rgba(0,0,0,0.65)");
+                pocketShadow.addColorStop(0.5, "rgba(0,0,0,0.18)");
+                pocketShadow.addColorStop(1, "rgba(0,0,0,0.45)");
+                ctx.beginPath();
+                ctx.arc(0, 0, numberInnerR, 0, Math.PI * 2);
+                ctx.arc(0, 0, pocketInnerR, 0, Math.PI * 2, true);
+                ctx.fillStyle = pocketShadow;
+                ctx.fill();
+
+                // 3. Cono central 3D metálico (bronce y madera)
+                const coneGrad = ctx.createRadialGradient(-r * 0.08, -r * 0.08, r * 0.04, 0, 0, pocketInnerR);
+                coneGrad.addColorStop(0, "#ffe47a");
+                coneGrad.addColorStop(0.32, "#c69214");
+                coneGrad.addColorStop(0.7, "#5e3c05");
+                coneGrad.addColorStop(1, "#261502");
+
+                ctx.beginPath();
+                ctx.arc(0, 0, pocketInnerR, 0, Math.PI * 2);
+                ctx.fillStyle = coneGrad;
+                ctx.fill();
+                ctx.strokeStyle = "#ffd700";
+                ctx.lineWidth = r * 0.016;
+                ctx.stroke();
+
+                // Brazos de la torre giratoria (4 brazos en cruz)
+                for (let b = 0; b < 4; b++) {
+                    ctx.save();
+                    ctx.rotate((b * Math.PI) / 2);
+                    const armGrad = ctx.createLinearGradient(0, -r * 0.03, 0, r * 0.03);
+                    armGrad.addColorStop(0, "#fff2a8");
+                    armGrad.addColorStop(0.5, "#d4af37");
+                    armGrad.addColorStop(1, "#6f4e07");
+                    ctx.fillStyle = armGrad;
+                    ctx.fillRect(0, -r * 0.025, r * 0.25, r * 0.05);
+
+                    ctx.beginPath();
+                    ctx.arc(r * 0.25, 0, r * 0.042, 0, Math.PI * 2);
+                    ctx.fillStyle = "#ffd700";
+                    ctx.fill();
+                    ctx.strokeStyle = "#5c3d04";
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Remate central brillante
+                const hubGrad = ctx.createRadialGradient(-r * 0.03, -r * 0.03, r * 0.01, 0, 0, r * 0.11);
+                hubGrad.addColorStop(0, "#ffffff");
+                hubGrad.addColorStop(0.35, "#ffd700");
+                hubGrad.addColorStop(1, "#7c5705");
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.105, 0, Math.PI * 2);
+                ctx.fillStyle = hubGrad;
+                ctx.fill();
+
+                ctx.restore();
+
+                // 4. Bolilla de marfil 3D con sombra
+                if (ballVisible) {
+                    const br = r * ballRadiusRatio;
+                    const bx = cx + Math.cos(ballAngle) * br;
+                    const by = cy + Math.sin(ballAngle) * br;
+                    const ballSize = r * 0.046;
+
+                    // Sombra debajo de la bolilla
+                    ctx.beginPath();
+                    ctx.arc(bx + ballSize * 0.35, by + ballSize * 0.45, ballSize, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(0,0,0,0.55)";
+                    ctx.fill();
+
+                    // Esfera brillante
+                    const bGrad = ctx.createRadialGradient(
+                        bx - ballSize * 0.35, by - ballSize * 0.35, ballSize * 0.1,
+                        bx, by, ballSize
+                    );
+                    bGrad.addColorStop(0, "#ffffff");
+                    bGrad.addColorStop(0.6, "#e6e2d8");
+                    bGrad.addColorStop(1, "#8d897f");
+                    ctx.beginPath();
+                    ctx.arc(bx, by, ballSize, 0, Math.PI * 2);
+                    ctx.fillStyle = bGrad;
+                    ctx.fill();
+                }
+
+                // 5. Brillo de iluminación superior fija (efecto cristal/3D)
+                const gloss = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+                gloss.addColorStop(0, "rgba(255, 255, 255, 0.14)");
+                gloss.addColorStop(0.5, "rgba(255, 255, 255, 0.02)");
+                gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 0.96, Math.PI * 1.05, Math.PI * 1.95);
+                ctx.fillStyle = gloss;
+                ctx.fill();
+            }
+
+            // ================================
+            // FIREBASE TRANSACCIONES
+            // ================================
+            async function deductFromFirebase(amount) {
+                pendingLocalTx = true;
+                try {
+                    const tx = await runTransaction(chipsRef, (current) => {
+                        const base = Number(current ?? currentChips);
+                        if (base < amount) return;
+                        return roundMoney(base - amount);
+                    });
+                    if (tx.committed) {
+                        currentChips = roundMoney(tx.snapshot.val() || 0);
+                        return true;
+                    }
+                    return false;
+                } finally {
+                    pendingLocalTx = false;
+                }
+            }
+
+            async function creditToFirebase(amount) {
+                pendingLocalTx = true;
+                try {
+                    const tx = await runTransaction(chipsRef, (current) => {
+                        const base = Number(current ?? currentChips);
+                        return roundMoney(base + amount);
+                    });
+                    if (tx.committed) {
+                        currentChips = roundMoney(tx.snapshot.val() || 0);
+                    }
+                } finally {
+                    pendingLocalTx = false;
+                }
+            }
+
+            // ================================
+            // CÁLCULO DE PREMIOS
+            // ================================
+            function evaluateRoulette(winNum, placedBets) {
+                const color = getColor(winNum);
+                let totalReturn = 0;
+                const winningKeys = [`num_${winNum}`];
+
+                if (winNum !== 0) {
+                    if (color === "red") winningKeys.push("red");
+                    if (color === "black") winningKeys.push("black");
+                    if (winNum % 2 === 0) winningKeys.push("even");
+                    else winningKeys.push("odd");
+                    if (winNum <= 18) winningKeys.push("low");
+                    else winningKeys.push("high");
+
+                    if (winNum <= 12) winningKeys.push("doz_1");
+                    else if (winNum <= 24) winningKeys.push("doz_2");
+                    else winningKeys.push("doz_3");
+
+                    if (winNum % 3 === 1) winningKeys.push("col_1");
+                    else if (winNum % 3 === 2) winningKeys.push("col_2");
+                    else winningKeys.push("col_3");
+                }
+
+                for (const [key, stake] of Object.entries(placedBets)) {
+                    if (!winningKeys.includes(key)) continue;
+                    if (key.startsWith("num_")) totalReturn += stake * 36;
+                    else if (key.startsWith("doz_") || key.startsWith("col_")) totalReturn += stake * 3;
+                    else totalReturn += stake * 2;
+                }
+
+                return { totalReturn: roundMoney(totalReturn), winningKeys };
+            }
+
+            // ================================
+            // ANIMACIÓN DEL GIRO 3D
+            // ================================
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function easeOutQuart(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+
+            function easeInOutQuad(t) {
+                return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            }
+
+            async function spinRoulette() {
+                if (isSpinning || !balanceLoaded) return;
+
+                const totalStake = getTotalBet();
+                if (totalStake <= 0) {
+                    showToast("⚠️ Colocá al menos una ficha en el paño.");
+                    return;
+                }
+                if (totalStake > currentChips) {
+                    showToast("❌ Tu apuesta supera tu saldo disponible.");
+                    return;
+                }
+
+                ensureAudio();
+                isSpinning = true;
+                highlightWinIdx = -1;
+                document.querySelectorAll(".felt-cell.winning-cell").forEach((el) => el.classList.remove("winning-cell"));
+                updateUI();
+
+                // Descontar en Firebase antes de girar
+                let deducted = false;
+                try {
+                    deducted = await deductFromFirebase(totalStake);
+                } catch {
+                    isSpinning = false;
+                    updateUI();
+                    showToast("❌ Error de conexión con Firebase.");
+                    return;
+                }
+
+                if (!deducted) {
+                    isSpinning = false;
+                    updateUI();
+                    showToast("❌ Saldo insuficiente. Pedí carga al cajero.");
+                    return;
+                }
+
+                // Guardar copia de las apuestas de esta ronda
+                const activeBets = { ...bets };
+                lastRoundBets = { ...bets };
+                bets = {};
+                betStack = [];
+                updateUI();
+
+                // Elegir número ganador
+                const winIdx = Math.floor(Math.random() * 37);
+                const winNum = WHEEL_ORDER[winIdx];
+
+                document.getElementById("status-text").textContent = "No va más... girando";
+                document.getElementById("last-result-badge").textContent = "🎡";
+                document.getElementById("btn-spin-roulette").classList.add("spinning");
+
+                const duration = 5200;
+                const dropT = 0.78;
+                const startTime = performance.now();
+
+                const startWheel = wheelAngle;
+                const wheelDelta = (3.5 + Math.random() * 2) * Math.PI * 2;
+                const wheelAtDrop = startWheel + wheelDelta * easeOutCubic(dropT);
+                const targetPocketAtDrop = wheelAtDrop + winIdx * SLICE_ANGLE - Math.PI / 2;
+
+                const startBall = ballAngle;
+                const twoPi = Math.PI * 2;
+                let ballEndAtDrop = targetPocketAtDrop;
+                while (ballEndAtDrop > startBall - 6.5 * twoPi) {
+                    ballEndAtDrop -= twoPi;
+                }
+
+                ballVisible = true;
+                let lastTickSector = -1;
+                let dropSoundPlayed = false;
+
+                function frame(now) {
+                    const elapsed = now - startTime;
+                    const t = Math.min(1, elapsed / duration);
+
+                    wheelAngle = startWheel + wheelDelta * easeOutCubic(t);
+
+                    if (t <= dropT) {
+                        const u = t / dropT;
+                        ballAngle = startBall + (ballEndAtDrop - startBall) * easeOutQuart(u);
+
+                        if (u < 0.62) {
+                            ballRadiusRatio = 0.84;
+                        } else {
+                            const v = (u - 0.62) / 0.38;
+                            const dropCurve = easeInOutQuad(v);
+                            const bounce = Math.abs(Math.sin(v * Math.PI * 3)) * (1 - v) * 0.04;
+                            ballRadiusRatio = 0.84 - (0.84 - 0.495) * dropCurve + bounce;
+                        }
+
+                        // Sonido de tick al cruzar deflectores/bolsillos
+                        const relAngle = ((ballAngle - wheelAngle) % twoPi + twoPi) % twoPi;
+                        const sector = Math.floor(relAngle / (SLICE_ANGLE * 2));
+                        if (sector !== lastTickSector) {
+                            lastTickSector = sector;
+                            playTick(u < 0.62 ? 1050 : 720, u < 0.62 ? 0.035 : 0.055);
+                        }
+                    } else {
+                        if (!dropSoundPlayed) {
+                            dropSoundPlayed = true;
+                            playTick(480, 0.09);
+                        }
+                        const w = (t - dropT) / (1 - dropT);
+                        const wobble = Math.sin(w * Math.PI * 4) * (1 - w) * 0.035;
+                        ballAngle = wheelAngle + winIdx * SLICE_ANGLE - Math.PI / 2 + wobble;
+                        ballRadiusRatio = 0.495 + Math.abs(Math.sin(w * Math.PI * 3)) * (1 - w) * 0.02;
+                    }
+
+                    drawWheel();
+
+                    if (t < 1) {
+                        requestAnimationFrame(frame);
+                    } else {
+                        finishSpin(winIdx, winNum, activeBets, totalStake);
+                    }
+                }
+
+                requestAnimationFrame(frame);
+            }
+
+            async function finishSpin(winIdx, winNum, activeBets, totalStake) {
+                highlightWinIdx = winIdx;
+                drawWheel();
+
+                const color = getColor(winNum);
+                const colorLabel = color === "green" ? "🟢 VERDE" : color === "red" ? "🔴 ROJO" : "⚫ NEGRO";
+                const { totalReturn, winningKeys } = evaluateRoulette(winNum, activeBets);
+
+                // Resalta en el paño todas las casillas ganadoras
+                winningKeys.forEach((key) => {
+                    const el = document.querySelector(`.felt-cell[data-bet="${key}"]`);
+                    if (el) el.classList.add("winning-cell");
+                });
+
+                recentNumbers.unshift(winNum);
+                recentNumbers = recentNumbers.slice(0, 12);
+                renderHistory();
+
+                document.getElementById("last-result-badge").textContent = `${winNum} ${colorLabel}`;
+
+                if (totalReturn > 0) {
+                    try {
+                        await creditToFirebase(totalReturn);
+                    } catch {
+                        showToast("⚠️ Error al acreditar premio. Revisá tu conexión.");
+                    }
+
+                    playWinFanfare();
+                    document.getElementById("status-text").textContent = `¡GANASTE $${totalReturn.toFixed(2)}!`;
+                    document.getElementById("last-win-txt").textContent = `$${totalReturn.toFixed(2)}`;
+
+                    if (totalReturn >= totalStake * 5) {
+                        document.getElementById("big-win-title").textContent = `🎡 ¡SALIÓ EL ${winNum}! 🎡`;
+                        document.getElementById("big-win-amount").textContent = `$${totalReturn.toFixed(2)}`;
+                        document.getElementById("big-win-overlay").classList.remove("hidden");
+                        if (typeof confetti === "function") {
+                            confetti({ particleCount: 110, spread: 80, origin: { y: 0.55 } });
+                        }
+                        setTimeout(() => {
+                            document.getElementById("big-win-overlay").classList.add("hidden");
+                        }, 2600);
+                    } else {
+                        showToast(`🎉 ¡Ganaste $${totalReturn.toFixed(2)} en el ${winNum}!`, "success");
+                    }
+                } else {
+                    document.getElementById("status-text").textContent = "Sin premio esta ronda";
+                    document.getElementById("last-win-txt").textContent = "$0.00";
+                }
+
+                isSpinning = false;
+                document.getElementById("btn-spin-roulette").classList.remove("spinning");
+                updateUI();
+            }
+
+            // ================================
+            // EVENTOS DEL PAÑO Y CONTROLES
+            // ================================
+            document.getElementById("felt-table").addEventListener("click", (e) => {
+                if (isSpinning || !balanceLoaded) return;
+                const cell = e.target.closest(".felt-cell[data-bet]");
+                if (!cell) return;
+
+                const totalAfter = roundMoney(getTotalBet() + selectedChip);
+                if (totalAfter > currentChips) {
+                    showToast("❌ No te alcanzan las fichas para sumar esa apuesta.");
+                    return;
+                }
+
+                const key = cell.dataset.bet;
+                bets[key] = roundMoney((bets[key] || 0) + selectedChip);
+                betStack.push({ key, amount: selectedChip });
+                playChipSound();
+                updateUI();
+            });
+
+            document.getElementById("chips-bar").addEventListener("click", (e) => {
+                const chip = e.target.closest(".poker-chip[data-val]");
+                if (!chip) return;
+                document.querySelectorAll(".poker-chip").forEach((c) => c.classList.remove("selected"));
+                chip.classList.add("selected");
+                selectedChip = Number(chip.dataset.val);
+                playChipSound();
+            });
+
+            document.getElementById("btn-undo").addEventListener("click", () => {
+                if (isSpinning || !betStack.length) return;
+                const last = betStack.pop();
+                bets[last.key] = roundMoney((bets[last.key] || 0) - last.amount);
+                if (bets[last.key] <= 0) delete bets[last.key];
+                updateUI();
+            });
+
+            document.getElementById("btn-clear").addEventListener("click", () => {
+                if (isSpinning) return;
+                bets = {};
+                betStack = [];
+                updateUI();
+            });
+
+            document.getElementById("btn-double").addEventListener("click", () => {
+                if (isSpinning) return;
+                const total = getTotalBet();
+                if (total === 0) return;
+                if (roundMoney(total * 2) > currentChips) {
+                    showToast("❌ Saldo insuficiente para duplicar.");
+                    return;
+                }
+                for (const key of Object.keys(bets)) {
+                    const add = bets[key];
+                    bets[key] = roundMoney(bets[key] + add);
+                    betStack.push({ key, amount: add });
+                }
+                playChipSound();
+                updateUI();
+            });
+
+            document.getElementById("btn-rebet").addEventListener("click", () => {
+                if (isSpinning || !lastRoundBets) return;
+                const needed = roundMoney(Object.values(lastRoundBets).reduce((s, v) => s + v, 0));
+                if (needed > currentChips) {
+                    showToast("❌ Saldo insuficiente para repetir la apuesta anterior.");
+                    return;
+                }
+                bets = { ...lastRoundBets };
+                betStack = Object.entries(bets).map(([key, amount]) => ({ key, amount }));
+                playChipSound();
+                updateUI();
+            });
+
+            document.getElementById("btn-spin-roulette").addEventListener("click", spinRoulette);
+
+            document.getElementById("btn-view-3d").addEventListener("click", () => {
+                is3DView = !is3DView;
+                document.getElementById("wheel-tilt-wrap").classList.toggle("flat-view", !is3DView);
+                document.getElementById("btn-view-3d").textContent = is3DView ? "3D" : "2D";
+            });
+
+            document.getElementById("btn-sound").addEventListener("click", () => {
+                soundEnabled = !soundEnabled;
+                document.getElementById("btn-sound").textContent = soundEnabled ? "🔊" : "🔇";
+            });
+
+            document.getElementById("btn-rules").addEventListener("click", () => {
+                document.getElementById("rules-modal").classList.toggle("hidden");
+            });
+            document.getElementById("rules-modal").addEventListener("click", () => {
+                document.getElementById("rules-modal").classList.add("hidden");
+            });
+            document.getElementById("rules-modal-card").addEventListener("click", (e) => e.stopPropagation());
+            document.getElementById("btn-close-rules").addEventListener("click", () => {
+                document.getElementById("rules-modal").classList.add("hidden");
+            });
+            document.getElementById("big-win-overlay").addEventListener("click", () => {
+                document.getElementById("big-win-overlay").classList.add("hidden");
+            });
+
+            document.getElementById("btn-lobby").addEventListener("click", (e) => {
+                if (isSpinning) e.preventDefault();
+            });
+
+            // Escucha de saldo en tiempo real en Firebase
+            document.getElementById("user-name").textContent = activeUser.toUpperCase();
+            buildNumbersGrid();
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+
+            onValue(userRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    sessionStorage.removeItem("active_user");
+                    window.location.href = "index.html";
+                    return;
+                }
+                const newChips = roundMoney(snapshot.val().chips || 0);
+                if (balanceLoaded && !pendingLocalTx && newChips > currentChips) {
+                    const diff = roundMoney(newChips - currentChips);
+                    showToast(`💰 ¡El cajero te acreditó +$${diff.toFixed(2)}!`, "success");
+                }
+                currentChips = newChips;
+                balanceLoaded = true;
+                updateUI();
+            });
+        }
+    </script>
+</body>
+</html>
