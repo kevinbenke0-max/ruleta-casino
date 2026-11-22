@@ -21,9 +21,9 @@
                 <span class="balance-pill">$<span id="user-balance-txt">0.00</span></span>
             </div>
             <div class="nav-actions">
+                <a href="lobby.html" class="btn-nav-icon lobby" id="btn-lobby">🏠 Lobby</a>
                 <button class="btn-nav-icon" id="btn-sound" title="Sonido">🔊</button>
                 <button class="btn-nav-icon" id="btn-rules" title="Premios y reglas">ℹ️</button>
-                <button class="btn-nav-icon logout" id="btn-logout" title="Salir">Salir</button>
             </div>
         </header>
 
@@ -520,6 +520,9 @@
                 refreshUI();
             });
 
+            document.getElementById("btn-lobby").addEventListener("click", (e) => {
+                if (isSpinning || freeSpinsLeft > 0) e.preventDefault();
+            });
             document.getElementById("btn-sound").addEventListener("click", () => {
                 soundEnabled = !soundEnabled;
                 document.getElementById("btn-sound").textContent = soundEnabled ? "🔊" : "🔇";
@@ -536,11 +539,6 @@
             });
             document.getElementById("big-win-overlay").addEventListener("click", () => {
                 document.getElementById("big-win-overlay").classList.add("hidden");
-            });
-            document.getElementById("btn-logout").addEventListener("click", () => {
-                if (isSpinning) return;
-                sessionStorage.removeItem("active_user");
-                window.location.href = "index.html";
             });
             document.getElementById("btn-bet-minus").addEventListener("click", () => {
                 if (isSpinning || freeSpinsLeft > 0 || betIndex === 0) return;
